@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Numerics;
+
+namespace Neuronic.Filters.Butterwoth
+{
+    public abstract class ButtersworthCoefficients : IBiquadCoefficients
+    {
+        private readonly List<Complex> _poles;
+        private readonly List<Complex> _zeros;
+
+        protected ButtersworthCoefficients(int filterOrder, double fs)
+        {
+            FilterOrder = filterOrder;
+            SamplingFrequency = fs;
+
+            _zeros = new List<Complex>(2 * filterOrder);
+            _poles = new List<Complex>(2 * filterOrder);
+        }
+
+        public int FilterOrder { get; }
+        public double SamplingFrequency { get; set; }
+
+        protected abstract int NumFilters { get; }
+
+        protected IList<Complex> Poles => _poles;
+
+        protected IList<Complex> Zeros => _zeros;
+
+        public virtual double Calculate(IList<Biquad> coeffs)
+        {
+            // Init internal state based on filter design requirements
+            _poles.Clear();
+            _zeros.Clear();
+
+            // Get zeros &poles of prototype analogue low pass.
+            var tempPoles = PrototypeAnalogLowPass(FilterOrder);
+            // Copy tmppole into poles
+            _poles.AddRange(tempPoles);
+
+            // Convert prototype to target filter type (LP/HP/BP/BS) - S-plane
+            var gain = ConvertPoles();
+
+            // SANITY CHECK: Ensure poles are in the left half of the S-plane
+            for (var i = 0; i < Poles.Count; i++)
+                Debug.Assert(Poles[i].Real <= 0, "Error: poles must be in the left half plane.");
+
+            // Map zeros & poles from S-plane to Z-plane
+            var ba = new double[2 * Math.Max(Poles.Count, Zeros.Count) + 5];
+            var preBLTgain = gain;
+            ConvertS2Z(Zeros, Poles, ref gain);
+
+            //Split up Z-plane poles and zeros into SOS
+            ConvertZp2SOS(Zeros, Poles, ref gain, ba);
+
+            // correct the overall gain
+            CorrectOverallGain(gain, preBLTgain, ba);
+
+            // Init biquad chain with coefficients from SOS
+            var overallGain = ba[0];
+            var numFilters = NumFilters;
+
+            coeffs.Clear();
+            for (var i = 0; i < numFilters; i++)
+                coeffs.Add(new Biquad(1d, ba[4 * i + 1], ba[4 * i + 2], 1d, ba[4 * i + 3], ba[4 * i + 4]));
+
+            return overallGain;
+        }
+
+        public BiquadChain Calculate()
+        {
+            var coeffs = new List<Biquad>(NumFilters);
+            var gain = Calculate(coeffs);
+            return new BiquadChain(coeffs, gain);
+        }
+
+        protected abstract double ConvertPoles();
+
+        protected virtual void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
+        {
+        }
+
+        /// <summary>
+        ///     // Lowpass analogue prototype. Places Butterworth poles evenly around the S-plane unit circle.
+        /// </summary>
+        /// <param name="filterOrder">The filter order.</param>
+        /// <returns></returns>
+        /// <remarks>
+        ///     Reference: MATLAB buttap(filterOrder)
+        /// </remarks>
+        private static List<Complex> PrototypeAnalogLowPass(int filterOrder)
+        {
+            var poles = new List<Complex>(filterOrder + 1);
+            var count = (filterOrder + 1) / 2;
+            for (var k = 0; k < count; k++)
+            {
+                var theta = (2 * k + 1) * Math.PI / (2 * filterOrder);
+                var real = -Math.Sin(theta);
+                var imag = Math.Cos(theta);
+                poles.Add(new Complex(real, imag));
+                poles.Add(new Complex(real, -imag)); // conjugate
+            }
+            return poles;
+        }
+
+        /// <summary>
+        ///     Bilinears the transform.
+        /// </summary> 
+        /// <returns>Z = (2 + S) / (2 - S) is the S-plane to Z-plane bilinear transform</returns>
+        /// <remarks>
+        ///     Reference: http://en.wikipedia.org/wiki/Bilinear_transform
+        /// </remarks>
+        private static double BilinearTransform(IList<Complex> values, int index)
+        {
+            Complex two = 2d;
+            var s = values[index];
+            values[index] = (two + s) / (two - s);
+            return Complex.Abs(two - s);
+        }
+
+        /// <summary>
+        ///     Convert poles & zeros from S-plane to Z-plane via Bilinear Tranform (BLT)
+        /// </summary>
+        /// <param name="zeros">The zeros.</param>
+        /// <param name="numZeros">The number zeros.</param>
+        /// <param name="poles">The poles.</param>
+        /// <param name="numPoles">The number poles.</param>
+        /// <param name="gain">The gain.</param>
+        private static void ConvertS2Z(IList<Complex> zeros, IList<Complex> poles, ref double gain)
+        {
+            var numPoles = poles.Count;
+            var numZeros = zeros.Count;
+            // blt zeros
+            for (var i = 0; i < numZeros; i++)
+                gain /= BilinearTransform(zeros, i);
+            // blt poles
+            for (var i = 0; i < numPoles; i++)
+                gain *= BilinearTransform(poles, i);
+        }
+
+        /// <summary>
+        ///     Convert filter poles and zeros to second-order sections
+        /// </summary>
+        /// <param name="zeros">The zeros.</param>
+        /// <param name="numZeros">The number zeros.</param>
+        /// <param name="poles">The poles.</param>
+        /// <param name="numPoles">The number poles.</param>
+        /// <param name="gain">The gain.</param>
+        /// <param name="ba">The ba.</param>
+        /// <returns></returns>
+        /// <remarks>
+        ///     Reference: http://www.mathworks.com/help/signal/ref/zp2sos.html
+        /// </remarks>
+        private static int ConvertZp2SOS(IList<Complex> zeros, IList<Complex> poles, ref double gain,
+            double[] ba)
+        {
+            var filterOrder = Math.Max(zeros.Count, poles.Count);
+            // Copy
+            var zerosTempVec = new List<Complex>(filterOrder);
+            zerosTempVec.AddRange(zeros);
+            // Add zeros at -1, so if S-plane degenerate case where
+            // numZeros = 0 will map to -1 in Z-plane.
+            if (zerosTempVec.Count < filterOrder)
+                zerosTempVec.AddRange(Enumerable.Repeat(new Complex(-1, 0), filterOrder - zerosTempVec.Count));
+
+            // Copy
+            var polesTempVec = new List<Complex>(filterOrder);
+            polesTempVec.AddRange(poles);
+            if (polesTempVec.Count < filterOrder)
+                polesTempVec.AddRange(Enumerable.Repeat(new Complex(0, 0), filterOrder - polesTempVec.Count));
+
+            ba[0] = gain; // store gain
+
+            var numSOS = 0;
+            for (var i = 0; i < filterOrder - 1; i += 2, numSOS++)
+            {
+                ba[4 * numSOS + 1] = -(zerosTempVec[i] + zerosTempVec[i + 1]).Real;
+                ba[4 * numSOS + 2] = (zerosTempVec[i] * zerosTempVec[i + 1]).Real;
+                ba[4 * numSOS + 3] = -(polesTempVec[i] + polesTempVec[i + 1]).Real;
+                ba[4 * numSOS + 4] = (polesTempVec[i] * polesTempVec[i + 1]).Real;
+            }
+
+            // Odd filter order thus one pair of poles/zeros remains
+            if (filterOrder % 2 == 1)
+            {
+                ba[4 * numSOS + 1] = -zerosTempVec[filterOrder - 1].Real;
+                ba[4 * numSOS + 2] = ba[4 * numSOS + 4] = 0;
+                ba[4 * numSOS + 3] = -polesTempVec[filterOrder - 1].Real;
+                numSOS++;
+            }
+
+            return 1 + 4 * numSOS;
+        }
+    }
+}
