@@ -48,6 +48,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ButterworthHighPassTest.cs" />
     <Compile Include="ButterworthLowPassTest.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -73,6 +74,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="HighPass08.txt" />
+    <Content Include="HighPass12.txt" />
+    <Content Include="HighPass16.txt" />
     <Content Include="LowPass12.txt" />
     <Content Include="LowPass16.txt" />
   </ItemGroup>

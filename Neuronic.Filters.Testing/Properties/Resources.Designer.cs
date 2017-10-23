@@ -61,6 +61,48 @@ namespace Neuronic.Filters.Testing.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 1	-2	1	1	-1,86480445083537	0,869542256160129
+        ///1	-2	1	1	-1,88350864178159	0,888293967807734
+        ///1	-2	1	1	-1,91907529383978	0,923950982087784
+        ///1	-2	1	1	-1,96762058043629	0,972619605003675.
+        /// </summary>
+        internal static string HighPass08 {
+            get {
+                return ResourceManager.GetString("HighPass08", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1	-2	1	1	-1,99611032558779	0,996114173407759
+        ///1	-2	1	1	-1,99637465823022	0,996378506559731
+        ///1	-2	1	1	-1,99688550799202	0,996889357306273
+        ///1	-2	1	1	-1,99760840512342	0,997612255831174
+        ///1	-2	1	1	-1,99849448305329	0,998498335469104
+        ///1	-2	1	1	-1,99948370234585	0,999487556668544.
+        /// </summary>
+        internal static string HighPass12 {
+            get {
+                return ResourceManager.GetString("HighPass12", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 1	-2	1	1	-1,96037388726628	0,960770176707166
+        ///1	-2	1	1	-1,96185271232904	0,962249300714299
+        ///1	-2	1	1	-1,96476002232263	0,965157198420402
+        ///1	-2	1	1	-1,96899615073797	0,969394183168790
+        ///1	-2	1	1	-1,97441421193665	0,974813339628162
+        ///1	-2	1	1	-1,98082344680450	0,981223870122376
+        ///1	-2	1	1	-1,98799398823124	0,988395861073551
+        ///1	-2	1	1	-1,99566322293089	0,996066646108449.
+        /// </summary>
+        internal static string HighPass16 {
+            get {
+                return ResourceManager.GetString("HighPass16", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 1	2	1	1	-1,34666548227894	0,454665597732817
         ///1	2	1	1	-1,37216276258226	0,482207713411182
         ///1	2	1	1	-1,42425781942110	0,538480698790711
