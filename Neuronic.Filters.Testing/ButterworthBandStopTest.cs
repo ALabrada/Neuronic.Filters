@@ -93,7 +93,7 @@ namespace Neuronic.Filters.Testing
 
             var coeff = new BandStopButtersworthCoefficients(order, fs, frequencies[targetFrequency] - br, frequencies[targetFrequency] + br);
             var chain = coeff.Calculate();
-            chain.Process(signal, 0, signal, 0, signal.Length);
+            chain.Filter(signal, 0, signal, 0, signal.Length);
 
             var count = signal.Length / 2;
             FourierTransform2.FFT(signal, im, FourierTransform.Direction.Forward);

@@ -6,11 +6,19 @@ using System.Numerics;
 
 namespace Neuronic.Filters.Butterwoth
 {
+    /// <summary>
+    /// Base class for the butterwoth filters.
+    /// </summary>
     public abstract class ButtersworthCoefficients : IBiquadCoefficients
     {
         private readonly List<Complex> _poles;
         private readonly List<Complex> _zeros;
 
+        /// <summary>
+        /// Creates a new instance of <see cref="ButtersworthCoefficients"/>.
+        /// </summary>
+        /// <param name="filterOrder">The order of the filter.</param>
+        /// <param name="fs">The sampling frequency.</param>
         protected ButtersworthCoefficients(int filterOrder, double fs)
         {
             FilterOrder = filterOrder;
@@ -20,15 +28,35 @@ namespace Neuronic.Filters.Butterwoth
             _poles = new List<Complex>(2 * filterOrder);
         }
 
+        /// <summary>
+        /// Gets the order of the filter.
+        /// </summary>
         public int FilterOrder { get; }
+        /// <summary>
+        /// Gets the sampling frequency of the filter.
+        /// </summary>
         public double SamplingFrequency { get; set; }
 
+        /// <summary>
+        /// Gets the number of biquad filters.
+        /// </summary>
         protected abstract int NumFilters { get; }
 
+        /// <summary>
+        /// Gets the poles.
+        /// </summary>
         protected IList<Complex> Poles => _poles;
 
+        /// <summary>
+        /// Gets the zeroes.
+        /// </summary>
         protected IList<Complex> Zeros => _zeros;
 
+        /// <summary>
+        /// Calculates a set of coefficients for a filter.
+        /// </summary>
+        /// <param name="coeffs">The container for the coefficients.</param>
+        /// <returns>The gain of the filter.</returns>
         public virtual double Calculate(IList<Biquad> coeffs)
         {
             // Init internal state based on filter design requirements
@@ -69,6 +97,10 @@ namespace Neuronic.Filters.Butterwoth
             return overallGain;
         }
 
+        /// <summary>
+        /// Creates a <see cref="BiquadChain"/> using the results from <see cref="Calculate(System.Collections.Generic.IList{Neuronic.Filters.Biquad})"/>.
+        /// </summary>
+        /// <returns>A biquad chain.</returns>
         public BiquadChain Calculate()
         {
             var coeffs = new List<Biquad>(NumFilters);
@@ -76,8 +108,15 @@ namespace Neuronic.Filters.Butterwoth
             return new BiquadChain(coeffs, gain);
         }
 
+        /// <summary>
+        /// Converts the prototype low-pass filter to S-plane.
+        /// </summary>
+        /// <returns>The current gain.</returns>
         protected abstract double ConvertPoles();
 
+        /// <summary>
+        /// Performs final adjustments based on the filter type.
+        /// </summary>
         protected virtual void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
         {
         }

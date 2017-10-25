@@ -5,10 +5,20 @@ using System.Numerics;
 
 namespace Neuronic.Filters.Butterwoth
 {
+    /// <summary>
+    /// A band-stop butterworth filter.
+    /// </summary>
     public class BandStopButtersworthCoefficients : ButtersworthCoefficients
     {
         private readonly double _f1, _f2;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="BandStopButtersworthCoefficients"/>.
+        /// </summary>
+        /// <param name="filterOrder">The order of the filter.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="f1">The minor cut-off frequency.</param>
+        /// <param name="f2">The major cut-off frequency.</param>
         public BandStopButtersworthCoefficients(int filterOrder, double fs, double f1, double f2) : base(filterOrder, fs)
         {
             if (f1 > f2)
@@ -23,16 +33,25 @@ namespace Neuronic.Filters.Butterwoth
             _f2 = 2 * Math.Tan(Math.PI * f2 / fs);
         }
 
+        /// <summary>
+        /// The minor cut-off frequency.
+        /// </summary>
         public double FirstCutoffFrequency { get; }
+        /// <summary>
+        /// The major cut-off frequency.
+        /// </summary>
         public double SecondCutoffFrequency { get; }
 
+        /// <inheritdoc />
         protected override int NumFilters => FilterOrder;
 
+        /// <inheritdoc />
         protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
         {
             ba[0] = 1d / ba[0];
         }
 
+        /// <inheritdoc />
         protected override double ConvertPoles()
         {
             return ConvertBandStop(_f1, _f2, Poles, Zeros);

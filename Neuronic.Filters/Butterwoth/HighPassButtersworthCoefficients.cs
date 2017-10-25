@@ -5,18 +5,31 @@ using System.Numerics;
 
 namespace Neuronic.Filters.Butterwoth
 {
+    /// <summary>
+    /// A high-pass butterworth filter.
+    /// </summary>
     public class HighPassButtersworthCoefficients : ButtersworthCoefficients
     {
         private readonly double _freq;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="HighPassButtersworthCoefficients"/>.
+        /// </summary>
+        /// <param name="filterOrder">The order of the filter.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="cutoffFrequency">The cut-off frequency.</param>
         public HighPassButtersworthCoefficients(int filterOrder, double fs, double cutoffFrequency) : base(filterOrder, fs)
         {
             CutoffFrequency = cutoffFrequency;
             _freq = 2 * Math.Tan(Math.PI * cutoffFrequency / fs);
         }
 
+        /// <summary>
+        /// The cut-off frequency.
+        /// </summary>
         public double CutoffFrequency { get; }
 
+        /// <inheritdoc />
         protected override int NumFilters => (FilterOrder + 1) / 2;
 
         /// <summary>
@@ -46,11 +59,13 @@ namespace Neuronic.Filters.Butterwoth
             return gain;
         }
 
+        /// <inheritdoc />
         protected override double ConvertPoles()
         {
             return ConvertToHighPass(_freq, Poles, Zeros);
         }
 
+        /// <inheritdoc />
         protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
         {
             ba[0] = 1d / ba[0];

@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace Neuronic.Filters
 {
+    /// <summary>
+    /// Uses a sequence of biquad filters to implment a higher-order filter.
+    /// </summary>
     public class BiquadChain : IReadOnlyList<Biquad>
     {
         private readonly Biquad[] _coeffs;
@@ -14,6 +17,11 @@ namespace Neuronic.Filters
         private double _xn1;
         private double _xn2;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BiquadChain"/> class.
+        /// </summary>
+        /// <param name="coefficients">The list of biquad sections.</param>
+        /// <param name="gain">The overall gain of the filter.</param>
         public BiquadChain(IList<Biquad> coefficients, double gain)
         {
             _coeffs = new Biquad[coefficients.Count];
@@ -24,9 +32,15 @@ namespace Neuronic.Filters
             _yn2 = new double[_coeffs.Length];
         }
 
+        /// <summary>
+        /// Gets the overall gain of the filter.
+        /// </summary>
         public double Gain { get; }
 
-        private void Reset()
+        /// <summary>
+        /// Reset's the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
+        /// </summary>
+        public void Reset()
         {
             _xn1 = 0;
             _xn2 = 0;
@@ -35,7 +49,14 @@ namespace Neuronic.Filters
             Array.Clear(_yn2, 0, Count);
         }
 
-        public unsafe void Process(float* input, float* output, int count, int stride)
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(float* input, float* output, int count, int stride)
         {
             fixed (Biquad* coeffs = _coeffs)
             {
@@ -71,23 +92,69 @@ namespace Neuronic.Filters
             }
         }
 
-        public unsafe void Process(float[] input, int inputIndex, float[] output, int outputIndex, int count)
+        /// <summary>
+        /// Executes two sweeps of the filter (forward and backward). This is a zero-phase filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="inputIndex">The starting index in <paramref name="input"/>.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="outputIndex">The starting index in <paramref name="output"/>.</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <remarks>
+        /// This method will reset the filter.
+        /// </remarks>
+        public unsafe void Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count, int stride=1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
             if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
             if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
-            if (inputIndex + count > input.Length || outputIndex + count > output.Length)
+            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
+                outputIndex + count * stride > output.Length || outputIndex + count * stride < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
+            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (float* inputPtr = input, outputPtr = output)
             {
-                Process(inputPtr + inputIndex, outputPtr + outputIndex, count, 1);
+                FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
                 Reset();
-                Process(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -1);
+                FilterOnce(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
         }
 
-        public unsafe void Process(double* input, double* output, int count, int stride)
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="inputIndex">The starting index in <paramref name="input"/>.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="outputIndex">The starting index in <paramref name="output"/>.</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(float[] input, int inputIndex, float[] output, int outputIndex, int count,
+            int stride=1)
+        {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
+            if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
+            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
+                outputIndex + count * stride > output.Length || outputIndex + count * stride < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (float* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
+            }
+        }
+
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(double* input, double* output, int count, int stride)
         {
             fixed (Biquad* coeffs = _coeffs)
             {
@@ -123,22 +190,64 @@ namespace Neuronic.Filters
             }
         }
 
-        public unsafe void Process(double[] input, int inputIndex, double[] output, int outputIndex, int count)
+        /// <summary>
+        /// Executes two sweeps of the filter (forward and backward). This is a zero-phase filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="inputIndex">The starting index in <paramref name="input"/>.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="outputIndex">The starting index in <paramref name="output"/>.</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <remarks>
+        /// This method will reset the filter.
+        /// </remarks>
+        public unsafe void Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
             if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
             if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
-            if (inputIndex + count > input.Length || outputIndex + count > output.Length)
+            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
+                outputIndex + count * stride > output.Length || outputIndex + count * stride < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
+            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (double* inputPtr = input, outputPtr = output)
             {
-                Process(inputPtr + inputIndex, outputPtr + outputIndex, count, 1);
+                FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
                 Reset();
-                Process(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -1);
+                FilterOnce(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
         }
 
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="inputIndex">The starting index in <paramref name="input"/>.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="outputIndex">The starting index in <paramref name="output"/>.</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(double[] input, int inputIndex, double[] output, int outputIndex, int count,
+            int stride = 1)
+        {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
+            if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
+            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
+                outputIndex + count * stride > output.Length || outputIndex + count * stride < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (double* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
+            }
+        }
+
+        /// <summary>Returns an enumerator that iterates through the collection.</summary>
+        /// <returns>An enumerator that can be used to iterate through the collection.</returns>
+        /// <filterpriority>1</filterpriority>
         public IEnumerator<Biquad> GetEnumerator()
         {
             return _coeffs.Cast<Biquad>().GetEnumerator();
@@ -149,8 +258,13 @@ namespace Neuronic.Filters
             return GetEnumerator();
         }
 
+        /// <summary>Gets the number of elements in the collection.</summary>
+        /// <returns>The number of elements in the collection. </returns>
         public int Count => _coeffs.Length;
 
+        /// <summary>Gets the element at the specified index in the read-only list.</summary>
+        /// <returns>The element at the specified index in the read-only list.</returns>
+        /// <param name="index">The zero-based index of the element to get. </param>
         public Biquad this[int index] => _coeffs[index];
     }
 }
