@@ -87,6 +87,58 @@ namespace Neuronic.Filters
             }
         }
 
+        public unsafe void Process(double* input, double* output, int count, int stride)
+        {
+            fixed (Biquad* coeffs = _coeffs)
+            {
+                fixed (double* yn = _yn, yn1 = _yn1, yn2 = _yn2)
+                {
+                    for (int n = 0; n < count; n++)
+                    {
+                        var xn = *input * Gain;
+
+                        yn[0] = coeffs[0].B0 * xn + coeffs[0].B1 * _xn1 + coeffs[0].B2 * _xn2
+                                + coeffs[0].A1 * yn1[0] + coeffs[0].A2 * yn2[0];
+
+                        for (int i = 1; i < Count; i++)
+                            yn[i] = coeffs[i].B0 * yn[i - 1] + coeffs[i].B1 * yn1[i - 1] + coeffs[i].B2 * yn2[i - 1]
+                                    + coeffs[i].A1 * yn1[i] + coeffs[i].A2 * yn2[i];
+
+                        // Shift delay line elements.
+                        for (int i = 0; i < Count; i++)
+                        {
+                            yn2[i] = yn1[i];
+                            yn1[i] = yn[i];
+                        }
+                        _xn2 = _xn1;
+                        _xn1 = xn;
+
+                        // Store result and stride
+                        *output = yn[Count - 1];
+
+                        input += stride;
+                        output += stride;
+                    }
+                }
+            }
+        }
+
+        public unsafe void Process(double[] input, int inputIndex, double[] output, int outputIndex, int count)
+        {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
+            if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
+            if (inputIndex + count > input.Length || outputIndex + count > output.Length)
+                throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
+            fixed (double* inputPtr = input, outputPtr = output)
+            {
+                Process(inputPtr + inputIndex, outputPtr + outputIndex, count, 1);
+                Reset();
+                Process(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -1);
+                Reset();
+            }
+        }
+
         public IEnumerator<Biquad> GetEnumerator()
         {
             return _coeffs.Cast<Biquad>().GetEnumerator();

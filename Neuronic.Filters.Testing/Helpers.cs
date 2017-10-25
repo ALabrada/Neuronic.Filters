@@ -27,5 +27,18 @@ namespace Neuronic.Filters.Testing
                 yield return new Biquad(values[0], values[1], values[2], values[3], values[4], values[5]);
             }
         }
+
+        internal static void GenerateSinusoid(double frequency, double fs, double[] samples)
+        {
+            var theta = 2 * Math.PI * frequency / fs;
+            for (int i = 0; i < samples.Length; i++)
+                samples[i] += Math.Cos(theta * i);
+        }
+
+        internal static void CalculateEnergy(double[] re, double[] im, int count)
+        {
+            for (int i = 0; i < count; i++)
+                re[i] = 2 * Math.Sqrt(re[i] * re[i] + im[i] * im[i]);
+        }
     }
 }
