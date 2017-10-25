@@ -76,6 +76,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="BandStop08.txt" />
+    <Content Include="BandStop12.txt" />
+    <Content Include="BandStop16.txt" />
     <Content Include="HighPass08.txt" />
     <Content Include="HighPass12.txt" />
     <Content Include="HighPass16.txt" />

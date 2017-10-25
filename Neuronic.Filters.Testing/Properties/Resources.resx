@@ -121,6 +121,12 @@
   <data name="BandStop08" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\bandstop08.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="BandStop12" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\bandstop12.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="BandStop16" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\bandstop16.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="HighPass08" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\highpass08.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

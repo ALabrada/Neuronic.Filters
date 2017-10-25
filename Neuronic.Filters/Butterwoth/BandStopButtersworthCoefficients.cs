@@ -51,8 +51,11 @@ namespace Neuronic.Filters.Butterwoth
 
             // Convert LP zeros to band stop
             var ztmp = new List<Complex>(2 * poles.Count);
-            ztmp.AddRange(Enumerable.Repeat(new Complex(0, wc),  poles.Count));
-            ztmp.AddRange(Enumerable.Repeat(new Complex(0, -wc), poles.Count)); // complex conjugate
+            for (int i = 0; i < poles.Count; i++)
+            {
+                ztmp.Add(new Complex(0, wc));
+                ztmp.Add(new Complex(0, -wc));
+            }
 
             var tempPoles = new List<Complex>(poles.Count * 2);
             // First set of poles + conjugates
