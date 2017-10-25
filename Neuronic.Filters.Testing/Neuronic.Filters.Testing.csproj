@@ -58,6 +58,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="ButterworthBandStopTest.cs" />
+    <Compile Include="ButterworthBandPassTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -75,6 +76,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BandPass08.txt" />
+    <Content Include="BandPass12.txt" />
+    <Content Include="BandPass16.txt" />
     <Content Include="BandStop08.txt" />
     <Content Include="BandStop12.txt" />
     <Content Include="BandStop16.txt" />

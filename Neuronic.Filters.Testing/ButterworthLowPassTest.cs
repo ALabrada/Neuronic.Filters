@@ -12,7 +12,7 @@ namespace Neuronic.Filters.Testing
     public class ButterworthLowPassTest
     {
         [TestMethod]
-        public void TestLowPass8()
+        public void TestLowPass08()
         {
             const int order = 8;
             const double fs = 44100d;

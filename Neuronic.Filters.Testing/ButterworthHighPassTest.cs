@@ -9,7 +9,7 @@ namespace Neuronic.Filters.Testing
     public class ButterworthHighPassTest
     {
         [TestMethod]
-        public void TestHighPass8()
+        public void TestHighPass08()
         {
             const int order = 8;
             const double fs = 44100d;

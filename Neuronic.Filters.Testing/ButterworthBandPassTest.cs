@@ -7,10 +7,10 @@ using Neuronic.Filters.Testing.Properties;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public class ButterworthBandStopTest
+    public class ButterworthBandPassTest
     {
         [TestMethod]
-        public void TestBandStop08()
+        public void TestBandPass08()
         {
             const int order = 8;
             const double fs = 44100d;
@@ -18,11 +18,11 @@ namespace Neuronic.Filters.Testing
             const double br = 5;
             const double error = 1e-3;
 
-            var coeff = new BandStopButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
+            var coeff = new BandPassButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandStop08).Reverse().ToList();
-            var expectedGain = 0.996359732766342;
+            var expected = Helpers.LoadScript(Resources.BandPass08).Reverse().ToList();
+            var expectedGain = 6.541867072214145e-26;
 
             Assert.AreEqual(expectedGain, chain.Gain, error);
             Assert.AreEqual(expected.Count, chain.Count);
@@ -31,7 +31,7 @@ namespace Neuronic.Filters.Testing
         }
 
         [TestMethod]
-        public void TestBandStop12()
+        public void TestBandPass12()
         {
             const int order = 12;
             const double fs = 32000d;
@@ -39,11 +39,11 @@ namespace Neuronic.Filters.Testing
             const double br = 10;
             const double error = 1e-2;
 
-            var coeff = new BandStopButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
+            var coeff = new BandPassButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandStop12).Reverse().ToList();
-            var expectedGain = 0.985211119221826;
+            var expected = Helpers.LoadScript(Resources.BandPass12).Reverse().ToList();
+            var expectedGain = 2.883388964711794e-33;
 
             Assert.AreEqual(expectedGain, chain.Gain, error);
             Assert.AreEqual(expected.Count, chain.Count);
@@ -52,7 +52,7 @@ namespace Neuronic.Filters.Testing
         }
 
         [TestMethod]
-        public void TestBandStop16()
+        public void TestBandPass16()
         {
             const int order = 16;
             const double fs = 31250d;
@@ -60,11 +60,11 @@ namespace Neuronic.Filters.Testing
             const double br = 1;
             const double error = 1e-3;
 
-            var coeff = new BandStopButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
+            var coeff = new BandPassButtersworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandStop16).Reverse().ToList();
-            var expectedGain = 0.997950883359409;
+            var expected = Helpers.LoadScript(Resources.BandPass16).Reverse().ToList();
+            var expectedGain = 7.114329431453330e-60;
 
             Assert.AreEqual(expectedGain, chain.Gain, error);
             Assert.AreEqual(expected.Count, chain.Count);
