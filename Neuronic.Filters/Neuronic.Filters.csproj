@@ -1,15 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;net45;net40</TargetFrameworks>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>Signature.snk</AssemblyOriginatorKeyFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Authors>Alexei Labrada</Authors>
+    <Company>Neuronic S.A.</Company>
+    <Copyright>Copyright © Neuronic 2017</Copyright>
+    <PackageTags>filter, iir, butterworth, biquad, DSP</PackageTags>
+    <Description>A collection of online digital filters for Digital Signal Processing (DSP).</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)'=='net40'">
+    <DefineConstants>NET40</DefineConstants>
+  </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <Optimize>False</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Debug\netstandard1.1\Neuronic.Filters.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netstandard1.1\Neuronic.Filters.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.1'">

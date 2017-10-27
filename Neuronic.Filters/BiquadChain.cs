@@ -8,7 +8,12 @@ namespace Neuronic.Filters
     /// <summary>
     /// Uses a sequence of biquad filters to implment a higher-order filter.
     /// </summary>
-    public class BiquadChain : IReadOnlyList<Biquad>
+    public class BiquadChain
+#if NET40
+        : IEnumerable<Biquad>
+#else
+        : IReadOnlyList<Biquad>
+#endif
     {
         private readonly Biquad[] _coeffs;
         private readonly double[] _yn;
