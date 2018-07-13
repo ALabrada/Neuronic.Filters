@@ -122,7 +122,7 @@ namespace Neuronic.Filters
             {
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
                 Reset();
-                FilterOnce(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
+                FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
         }
@@ -220,7 +220,7 @@ namespace Neuronic.Filters
             {
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
                 Reset();
-                FilterOnce(inputPtr + inputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
+                FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
         }
