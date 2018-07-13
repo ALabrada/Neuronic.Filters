@@ -26,6 +26,7 @@
     <PackageLicenseUrl>https://github.com/ALabrada/Neuronic.Filters/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ALabrada/Neuronic.Filters</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.1'">

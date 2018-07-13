@@ -6,13 +6,13 @@ using System.Linq;
 namespace Neuronic.Filters
 {
     /// <summary>
-    /// Uses a sequence of biquad filters to implment a higher-order filter.
+    /// Uses a sequence of biquad filters to implement a higher-order filter.
     /// </summary>
-    public class BiquadChain
+    public class BiquadChain : IZeroPhaseDigitalFilter
 #if NET40
-        : IEnumerable<Biquad>
+        , IEnumerable<Biquad>
 #else
-        : IReadOnlyList<Biquad>
+        , IReadOnlyList<Biquad>
 #endif
     {
         private readonly Biquad[] _coeffs;
