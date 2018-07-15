@@ -59,6 +59,8 @@
   <ItemGroup>
     <Compile Include="ButterworthHighPassTest.cs" />
     <Compile Include="ButterworthLowPassTest.cs" />
+    <Compile Include="ErrorComparer.cs" />
+    <Compile Include="FrequencySpectrum.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
@@ -69,6 +71,10 @@
     <Compile Include="ButterworthBandStopTest.cs" />
     <Compile Include="ButterworthBandPassTest.cs" />
     <Compile Include="FourierSeriesLowPassTest.cs" />
+    <Compile Include="WindowBasedBandPassTest.cs" />
+    <Compile Include="WindowBasedBandStopTest.cs" />
+    <Compile Include="WindowBasedHighPassTest.cs" />
+    <Compile Include="WindowBasedLowPassTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
