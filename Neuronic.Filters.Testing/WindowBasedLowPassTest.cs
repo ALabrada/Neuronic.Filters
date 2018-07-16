@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neuronic.Filters.Butterwoth;
@@ -8,7 +7,7 @@ using Neuronic.Filters.FIR;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public class WindowBasedLowPassTest
+    public partial class WindowBasedLowPassTest
     {
         [TestMethod]
         public void TestLowPass10()
@@ -84,37 +83,40 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestLowPassSinusoid()
         {
-            const int order = 75;
+            const int order = 32;
             const int fs = 44100;
             const double cutoffFrequency = 4000d;
             const int cycles = 10;
-            double[] frequencies = {200, 1700, 5300, 8900 };
+            double[] frequencies = {330, 1870, 5830, 9790 };
 
-            var signal = new double[cycles * fs];
+            var samples = new double[cycles * fs];
             foreach (var frequency in frequencies)
-                Helpers.GenerateSinusoid(frequency, fs, signal);
+                Helpers.GenerateSinusoid(frequency, fs, samples);
+            var originalSignal = new Signal(samples);
 
             var coeff = new LowPassWindowBasedCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
-            var filteredSignal = new double[signal.Length - chain.PhaseShift];
-            chain.Filter(signal, 0, filteredSignal, 0, signal.Length, zeroPhase: true);
+            chain.Filter(samples, 0, samples, 0, samples.Length, zeroPhase: true);
+            var filteredSignal = new Signal(samples, 0, samples.Length - chain.PhaseShift);
 
-            var originalSpectrum = new FrequencySpectrum(signal, fs);
-            var filteredSpectrum = new FrequencySpectrum(filteredSignal, fs);
+            Array.Clear(samples, 0, samples.Length);
+            foreach (var frequency in frequencies.TakeWhile(f => f < cutoffFrequency))
+                Helpers.GenerateSinusoid(frequency, fs, samples);
+            var expectedSignal = new Signal(samples);
 
-            var originalPeaks = new SortedSet<double>(originalSpectrum.GetPeaks(0.1), new ErrorComparer(1));
-            Assert.IsTrue(originalPeaks.SetEquals(frequencies));
-            var filteredPeaks = new SortedSet<double>(filteredSpectrum.GetPeaks(0.1), new ErrorComparer(1));
-            Assert.IsTrue(filteredPeaks.SetEquals(frequencies.Where(x => x < cutoffFrequency)));
+            var filteredCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, 0);
+            Assert.AreEqual(1, filteredCorrelation, 0.3);
 
-            foreach (var freq in frequencies)
+            var originalCorrelation = Signal.CrossCorrelation(originalSignal, filteredSignal, 0);
+            Assert.AreNotEqual(1, originalCorrelation, 0.3);
+            Assert.IsTrue(originalCorrelation < filteredCorrelation);
+
+            for (int i = 1; i <= order; i++)
             {
-                var expected = originalSpectrum[freq];
-                var actual = filteredSpectrum[freq];
-                if (freq < cutoffFrequency)
-                    Assert.AreEqual(expected, actual, 0.01 * Math.Max(originalSpectrum.Maximum, filteredSpectrum.Maximum));
-                else
-                    Assert.AreNotEqual(expected, actual, 0.01);
+                var crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, i);
+                Assert.IsTrue(crossCorrelation < filteredCorrelation);
+                crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
+                Assert.IsTrue(crossCorrelation < filteredCorrelation);
             }
         }
     }

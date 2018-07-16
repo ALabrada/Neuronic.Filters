@@ -71,6 +71,7 @@
     <Compile Include="ButterworthBandStopTest.cs" />
     <Compile Include="ButterworthBandPassTest.cs" />
     <Compile Include="FourierSeriesLowPassTest.cs" />
+    <Compile Include="Signal.cs" />
     <Compile Include="WindowBasedBandPassTest.cs" />
     <Compile Include="WindowBasedBandStopTest.cs" />
     <Compile Include="WindowBasedHighPassTest.cs" />
