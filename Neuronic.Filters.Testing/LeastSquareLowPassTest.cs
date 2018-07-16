@@ -7,7 +7,7 @@ using Neuronic.Filters.FIR;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public partial class WindowBasedLowPassTest
+    public partial class LeastSquareLowPassTest
     {
         [TestMethod]
         public void TestLowPass10()
@@ -17,7 +17,7 @@ namespace Neuronic.Filters.Testing
             const double cutoffFrequency = 100d;
             const double error = 1e-4;
 
-            var coeff = new LowPassWindowBasedCoefficients(order, fs, cutoffFrequency);
+            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
             var expected = new[]
@@ -40,7 +40,7 @@ namespace Neuronic.Filters.Testing
             const double cutoffFrequency = 250d;
             const double error = 1e-4;
 
-            var coeff = new LowPassWindowBasedCoefficients(order, fs, cutoffFrequency);
+            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
             var expected = new[]
@@ -64,7 +64,7 @@ namespace Neuronic.Filters.Testing
             const double cutoffFrequency = 1250d;
             const double error = 1e-4;
 
-            var coeff = new LowPassWindowBasedCoefficients(order, fs, cutoffFrequency);
+            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
             var expected = new[]
@@ -94,7 +94,7 @@ namespace Neuronic.Filters.Testing
                 Helpers.GenerateSinusoid(frequency, fs, samples);
             var originalSignal = new Signal(samples);
 
-            var coeff = new LowPassWindowBasedCoefficients(order, fs, cutoffFrequency);
+            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
             chain.Filter(samples, 0, samples, 0, samples.Length, zeroPhase: true);
             var filteredSignal = new Signal(samples, 0, samples.Length - chain.PhaseShift);

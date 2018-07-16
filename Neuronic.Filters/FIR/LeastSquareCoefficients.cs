@@ -8,10 +8,24 @@ namespace Neuronic.Filters.FIR
 {
     public abstract class WindowBasedCoefficients : FiniteImpulseResponseCoefficients
     {
+        public WindowBasedCoefficients(int n, double fs) : base(n, fs)
+        {
+        }
+
+        public IWindow Window { get; set; } = FIR.Window.Hamming;
+
+        protected void TapperEdges(IList<double> coeffs)
+        {
+            Window?.ApplyTo(coeffs);
+        }
+    }
+
+    public abstract class LeastSquareCoefficients : WindowBasedCoefficients
+    {
         private readonly double[] _frequencies;
         private readonly double[] _amplitudes;
 
-        public WindowBasedCoefficients(int n, double fs, IList<double> ff, IList<double> aa) : base(n, fs)
+        public LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) : base(n, fs)
         {
             _frequencies = new double[ff.Count];
             ff.CopyTo(_frequencies, 0);
@@ -21,8 +35,6 @@ namespace Neuronic.Filters.FIR
         }
 
         public bool UseScaling { get; set; } = true;
-
-        public IWindow Window { get; set; } = FIR.Window.Hamming;
 
         public static double NormalizeFrequency(double f, double fs)
         {
@@ -263,7 +275,7 @@ namespace Neuronic.Filters.FIR
             foreach (var x in hh)
                 coeffs.Add(x);
 
-            Window?.ApplyTo(coeffs);
+            TapperEdges(coeffs);
 
             if (UseScaling)
                 ScaleFilter(coeffs);
@@ -312,9 +324,9 @@ namespace Neuronic.Filters.FIR
         }
     }
 
-    public class LowPassWindowBasedCoefficients : WindowBasedCoefficients
+    public class LowPassLeastSquareCoefficients : LeastSquareCoefficients
     {
-        public LowPassWindowBasedCoefficients(int n, double fs, double fx) 
+        public LowPassLeastSquareCoefficients(int n, double fs, double fx) 
             : base(n, fs, 
                   new [] {0d, NormalizeFrequency(fx, fs), NormalizeFrequency(fx, fs), 1d}, 
                   new [] {1d, 1d, 0d, 0d})
@@ -331,9 +343,9 @@ namespace Neuronic.Filters.FIR
         public double CutoffFrequency { get; }
     }
 
-    public class HighPassWindowBasedCoefficients : WindowBasedCoefficients
+    public class HighPassLeastSquareCoefficients : LeastSquareCoefficients
     {
-        public HighPassWindowBasedCoefficients(int n, double fs, double fx)
+        public HighPassLeastSquareCoefficients(int n, double fs, double fx)
             : base(n, fs,
                 new[] { 0d, NormalizeFrequency(fx, fs), NormalizeFrequency(fx, fs), 1d },
                 new[] { 0d, 0d, 1d, 1d })
@@ -350,9 +362,9 @@ namespace Neuronic.Filters.FIR
         public double CutoffFrequency { get; }
     }
 
-    public class BandPassWindowBasedCoefficients : WindowBasedCoefficients
+    public class BandPassLeastSquareCoefficients : LeastSquareCoefficients
     {
-        public BandPassWindowBasedCoefficients(int n, double fs, double f1, double f2) 
+        public BandPassLeastSquareCoefficients(int n, double fs, double f1, double f2) 
             : base(n, fs, 
                   new [] {0d, NormalizeFrequency(f1, fs), NormalizeFrequency(f1, fs), NormalizeFrequency(f2, fs), NormalizeFrequency(f2, fs), 1d },
                   new [] {0d, 0d, 1d, 1d, 0d, 0d})
@@ -377,9 +389,9 @@ namespace Neuronic.Filters.FIR
         public double SecondCutoffFrequency { get; }
     }
 
-    public class BandStopWindowBasedCoefficients : WindowBasedCoefficients
+    public class BandStopLeastSquareCoefficients : LeastSquareCoefficients
     {
-        public BandStopWindowBasedCoefficients(int n, double fs, double f1, double f2)
+        public BandStopLeastSquareCoefficients(int n, double fs, double f1, double f2)
             : base(n, fs,
                 new[] { 0d, NormalizeFrequency(f1, fs), NormalizeFrequency(f1, fs), NormalizeFrequency(f2, fs), NormalizeFrequency(f2, fs), 1d },
                 new[] { 1d, 1d, 0d, 0d, 1d, 1d })

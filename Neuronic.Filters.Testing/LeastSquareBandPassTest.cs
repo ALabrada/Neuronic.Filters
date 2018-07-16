@@ -4,7 +4,7 @@ using Neuronic.Filters.FIR;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public class WindowBasedBandPassTest
+    public class LeastSquareBandPassTest
     {
         [TestMethod]
         public void TestBandPass10()
@@ -15,7 +15,7 @@ namespace Neuronic.Filters.Testing
             const double f2 = 800d;
             const double error = 1e-4;
 
-            var coeff = new BandPassWindowBasedCoefficients(order, fs, f1, f2);
+            var coeff = new BandPassLeastSquareCoefficients(order, fs, f1, f2);
             var chain = coeff.Calculate();
 
             var expected = new[]
