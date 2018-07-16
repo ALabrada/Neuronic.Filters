@@ -6,27 +6,16 @@ using System.Numerics;
 
 namespace Neuronic.Filters.FIR
 {
-    public abstract class WindowBasedCoefficients : FiniteImpulseResponseCoefficients
-    {
-        public WindowBasedCoefficients(int n, double fs) : base(n, fs)
-        {
-        }
-
-        public IWindow Window { get; set; } = FIR.Window.Hamming;
-
-        protected void TapperEdges(IList<double> coeffs)
-        {
-            Window?.ApplyTo(coeffs);
-        }
-    }
-
     public abstract class LeastSquareCoefficients : WindowBasedCoefficients
     {
         private readonly double[] _frequencies;
         private readonly double[] _amplitudes;
 
-        public LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) : base(n, fs)
+        protected LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) : base(n, fs)
         {
+            if (ff.Count != aa.Count)
+                throw new ArgumentException("The lengths of the frequency and amplitude vectors must match.");
+
             _frequencies = new double[ff.Count];
             ff.CopyTo(_frequencies, 0);
             Array.Sort(_frequencies);
@@ -36,14 +25,65 @@ namespace Neuronic.Filters.FIR
 
         public bool UseScaling { get; set; } = true;
 
-        public static double NormalizeFrequency(double f, double fs)
+        protected static double NormalizeFrequency(double f, double fs)
         {
             return 0.5 * f / fs;
         }
 
-        private static double[] mldivide(double[,] a, IList<double> b)
+        private static double[] GaussJordanElimination(double[,] a, IList<double> b)
         {
-            throw new NotImplementedException();
+            var n = b.Count;
+            Debug.Assert(a.GetLength(0) == n && a.GetLength(1) == n, "A must be a square matrix with dimensions matching b.");
+
+            for (int i = 0; i < n; i++)
+            {
+                double tmp;
+                // Search for maximum in this column
+                var maxEl = Math.Abs(a[i,i]);
+                var maxRow = i;
+                for (int k = i + 1; k < n; k++)
+                    if (Math.Abs(a[k, i]) > maxEl)
+                    {
+                        maxEl = Math.Abs(a[k, i]);
+                        maxRow = k;
+                    }
+
+                if (maxEl <= 0)
+                    continue;
+
+                // Swap maximum row with current row (column by column)
+                for (int k = i; k < n; k++)
+                {
+                    tmp = a[maxRow,k];
+                    a[maxRow,k] = a[i,k];
+                    a[i,k] = tmp;
+                }
+
+                tmp = b[maxRow];
+                b[maxRow] = b[i];
+                b[i] = tmp;
+
+                // Make all rows below this one 0 in current column
+                for (int k = i + 1; k < n; k++)
+                {
+                    var c = -a[k,i] / a[i,i];
+                    a[k, i] = 0;
+                    for (int j = i + 1; j < n; j++)
+                        a[k, j] += c * a[i, j];
+                    b[k] += c * b[i];
+                }
+            }
+
+            // Solve equation Ax=b for an upper triangular matrix A
+            var x = new double[n];
+            for (int i = n - 1; i >= 0; i--)
+            {
+                x[i] = b[i] / a[i,i];
+                for (int k = i - 1; k >= 0; k--)
+                    b[k] -= a[k, i] * x[i];
+            }
+
+            return x;
         }
 
         /// <summary>
@@ -199,7 +239,7 @@ namespace Neuronic.Filters.FIR
             IList<double> a;
             if (needMatrix)
                 // a=G\b;
-                a = mldivide(g, b);
+                a = GaussJordanElimination(g, b);
             else
             {
                 a = new double[b.Count];
