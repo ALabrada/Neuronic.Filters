@@ -3,8 +3,21 @@ using System.Collections.Generic;
 
 namespace Neuronic.Filters.FIR
 {
+    /// <summary>
+    /// Abstraction of a Finite Impulse Response (FIR) filter designer.
+    /// </summary>
     public abstract class FiniteImpulseResponseCoefficients
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FiniteImpulseResponseCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order..</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <exception cref="ArgumentOutOfRangeException">
+        /// n
+        /// or
+        /// fs
+        /// </exception>
         public FiniteImpulseResponseCoefficients(int n, double fs)
         {
             if (n <= 0)
@@ -26,6 +39,10 @@ namespace Neuronic.Filters.FIR
         /// </summary>
         public double SamplingFrequency { get; set; }
 
+        /// <summary>
+        /// Designs a FIR filter.
+        /// </summary>
+        /// <returns>The FIR filter.</returns>
         public TapChain Calculate()
         {
             var coeffs = new List<double>(FilterOrder);
@@ -33,6 +50,10 @@ namespace Neuronic.Filters.FIR
             return new TapChain(coeffs);
         }
 
+        /// <summary>
+        /// Calculates coefficients (taps) for a FIR filter.
+        /// </summary>
+        /// <param name="coeffs">The collection that will hold the coefficients.</param>
         public abstract void Calculate(IList<double> coeffs);
     }
 }

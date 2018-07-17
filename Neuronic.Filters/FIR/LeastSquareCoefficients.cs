@@ -6,11 +6,24 @@ using System.Numerics;
 
 namespace Neuronic.Filters.FIR
 {
+    /// <summary>
+    /// Abstraction of a FIR filter designer that uses the least square minimization method.
+    /// This is equivalent to the MATLAB's fir1 function.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.FIR.WindowBasedCoefficients" />
     public abstract class LeastSquareCoefficients : WindowBasedCoefficients
     {
         private readonly double[] _frequencies;
         private readonly double[] _amplitudes;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LeastSquareCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="ff">The vector of cutoff frequencies normalized by the Nyquist frequency (use <see cref="NormalizeFrequency"/>).</param>
+        /// <param name="aa">The amplitude vector.</param>
+        /// <exception cref="ArgumentException">The lengths of the frequency and amplitude vectors must match.</exception>
         protected LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) 
             : base(aa[aa.Count - 1] != 0 && ff[ff.Count - 1] == 1 && n % 2 == 1 ? n + 1 : n, fs)
         {
@@ -24,8 +37,20 @@ namespace Neuronic.Filters.FIR
             aa.CopyTo(_amplitudes, 0);
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to apply scaling to the coefficients.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if scaling should be applied; otherwise, <c>false</c>.
+        /// </value>
         public bool UseScaling { get; set; } = true;
 
+        /// <summary>
+        /// Normalizes a cutoff frequency by the Nyquist frequency.
+        /// </summary>
+        /// <param name="f">The cutoff frequency to normalize.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <returns><paramref name="f"/> normalized.</returns>
         protected static double NormalizeFrequency(double f, double fs)
         {
             return 0.5 * f / fs;
@@ -276,6 +301,10 @@ namespace Neuronic.Filters.FIR
             return h.ToArray();
         }
 
+        /// <summary>
+        /// Calculates coefficients (taps) for a FIR filter.
+        /// </summary>
+        /// <param name="coeffs">The collection that will hold the coefficients.</param>
         public override void Calculate(IList<double> coeffs)
         {
             /*
@@ -315,12 +344,13 @@ namespace Neuronic.Filters.FIR
                 b = scalefilter(b,First_Band,ff,L);
             end
             */
-
             var hh = FIRLS(FilterOrder, _frequencies, _amplitudes);
+
+            coeffs.Clear();
             foreach (var x in hh)
                 coeffs.Add(x);
 
-            TapperEdges(coeffs);
+            ApplyWindow(coeffs);
 
             if (UseScaling)
                 ScaleFilter(coeffs);
@@ -369,8 +399,19 @@ namespace Neuronic.Filters.FIR
         }
     }
 
+    /// <summary>
+    /// Low-pass filter designer that uses the least square minimization method.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.FIR.LeastSquareCoefficients" />
     public class LowPassLeastSquareCoefficients : LeastSquareCoefficients
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LowPassLeastSquareCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="fx">The cutoff frequency.</param>
+        /// <exception cref="ArgumentOutOfRangeException">fx</exception>
         public LowPassLeastSquareCoefficients(int n, double fs, double fx) 
             : base(n, fs, 
                   new [] {0d, NormalizeFrequency(fx, fs), NormalizeFrequency(fx, fs), 1d}, 
@@ -388,8 +429,19 @@ namespace Neuronic.Filters.FIR
         public double CutoffFrequency { get; }
     }
 
+    /// <summary>
+    /// High-pass filter designer that uses the least square minimization method.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.FIR.LeastSquareCoefficients" />
     public class HighPassLeastSquareCoefficients : LeastSquareCoefficients
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HighPassLeastSquareCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="fx">The cutoff frequency.</param>
+        /// <exception cref="ArgumentOutOfRangeException">fx</exception>
         public HighPassLeastSquareCoefficients(int n, double fs, double fx)
             : base(n, fs,
                 new[] { 0d, NormalizeFrequency(fx, fs), NormalizeFrequency(fx, fs), 1d },
@@ -407,8 +459,19 @@ namespace Neuronic.Filters.FIR
         public double CutoffFrequency { get; }
     }
 
+    /// <summary>
+    /// Band-pass filter designer that uses the least square minimization method.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.FIR.LeastSquareCoefficients" />
     public class BandPassLeastSquareCoefficients : LeastSquareCoefficients
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BandPassLeastSquareCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="f1">The lower cutoff frequency.</param>
+        /// <param name="f2">The upper cutoff frequency.</param>
         public BandPassLeastSquareCoefficients(int n, double fs, double f1, double f2) 
             : base(n, fs, 
                   new [] {0d, NormalizeFrequency(f1, fs), NormalizeFrequency(f1, fs), NormalizeFrequency(f2, fs), NormalizeFrequency(f2, fs), 1d },
@@ -434,8 +497,19 @@ namespace Neuronic.Filters.FIR
         public double SecondCutoffFrequency { get; }
     }
 
+    /// <summary>
+    /// Band-stop filter designer that uses the least square minimization method.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.FIR.LeastSquareCoefficients" />
     public class BandStopLeastSquareCoefficients : LeastSquareCoefficients
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BandStopLeastSquareCoefficients"/> class.
+        /// </summary>
+        /// <param name="n">The filter order.</param>
+        /// <param name="fs">The sampling frequency.</param>
+        /// <param name="f1">The lower cutoff frequency.</param>
+        /// <param name="f2">The upper cutoff frequency.</param>
         public BandStopLeastSquareCoefficients(int n, double fs, double f1, double f2)
             : base(n, fs,
                 new[] { 0d, NormalizeFrequency(f1, fs), NormalizeFrequency(f1, fs), NormalizeFrequency(f2, fs), NormalizeFrequency(f2, fs), 1d },
