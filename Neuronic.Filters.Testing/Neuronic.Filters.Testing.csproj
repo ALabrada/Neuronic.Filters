@@ -70,12 +70,12 @@
     </Compile>
     <Compile Include="ButterworthBandStopTest.cs" />
     <Compile Include="ButterworthBandPassTest.cs" />
-    <Compile Include="FourierSeriesLowPassTest.cs" />
     <Compile Include="Signal.cs" />
     <Compile Include="LeastSquareBandPassTest.cs" />
     <Compile Include="LeastSquareBandStopTest.cs" />
     <Compile Include="LeastSquareHighPassTest.cs" />
     <Compile Include="LeastSquareLowPassTest.cs" />
+    <Compile Include="FIRFilteringTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

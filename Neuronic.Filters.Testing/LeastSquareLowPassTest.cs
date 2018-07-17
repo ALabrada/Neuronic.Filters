@@ -7,18 +7,25 @@ using Neuronic.Filters.FIR;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public partial class LeastSquareLowPassTest
+    public class LeastSquareLowPassTest
     {
+        private static void TestLowPass(int order, double fs, double cutoffFrequency, double[] expected, double error, bool scale)
+        {
+            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency) {UseScaling = scale};
+            var chain = coeff.Calculate();
+
+            Assert.AreEqual(expected.Length, chain.Count);
+            for (int i = 0; i < expected.Length; i++)
+                Assert.AreEqual(expected[i], chain[i], error);
+        }
+
         [TestMethod]
         public void TestLowPass10()
         {
             const int order = 10;
             const double fs = 44100d;
             const double cutoffFrequency = 100d;
-            const double error = 1e-4;
-
-            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
-            var chain = coeff.Calculate();
+            const double error = 1e-6;
 
             var expected = new[]
             {
@@ -27,9 +34,7 @@ namespace Neuronic.Filters.Testing
                 0.014597902574489
             };
 
-            Assert.AreEqual(expected.Length, chain.Count);
-            for (int i = 0; i < expected.Length; i++)
-                Assert.AreEqual(expected[i], chain[i], error);
+            TestLowPass(order, fs, cutoffFrequency, expected, error, true);
         }
 
         [TestMethod]
@@ -38,10 +43,7 @@ namespace Neuronic.Filters.Testing
             const int order = 15;
             const double fs = 44100d;
             const double cutoffFrequency = 250d;
-            const double error = 1e-4;
-
-            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
-            var chain = coeff.Calculate();
+            const double error = 1e-6;
 
             var expected = new[]
             {
@@ -51,9 +53,7 @@ namespace Neuronic.Filters.Testing
                 0.009773912665721
             };
 
-            Assert.AreEqual(expected.Length, chain.Count);
-            for (int i = 0; i < expected.Length; i++)
-                Assert.AreEqual(expected[i], chain[i], error);
+            TestLowPass(order, fs, cutoffFrequency, expected, error, true);
         }
 
         [TestMethod]
@@ -62,10 +62,7 @@ namespace Neuronic.Filters.Testing
             const int order = 20;
             const double fs = 44100d;
             const double cutoffFrequency = 1250d;
-            const double error = 1e-4;
-
-            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
-            var chain = coeff.Calculate();
+            const double error = 1e-6;
 
             var expected = new[]
             {
@@ -75,49 +72,7 @@ namespace Neuronic.Filters.Testing
                 0.015186933196523, 0.009222810505808, 0.007151722151675
             };
 
-            Assert.AreEqual(expected.Length, chain.Count);
-            for (int i = 0; i < expected.Length; i++)
-                Assert.AreEqual(expected[i], chain[i], error);
-        }
-
-        [TestMethod]
-        public void TestLowPassSinusoid()
-        {
-            const int order = 32;
-            const int fs = 44100;
-            const double cutoffFrequency = 4000d;
-            const int cycles = 10;
-            double[] frequencies = {330, 1870, 5830, 9790 };
-
-            var samples = new double[cycles * fs];
-            foreach (var frequency in frequencies)
-                Helpers.GenerateSinusoid(frequency, fs, samples);
-            var originalSignal = new Signal(samples);
-
-            var coeff = new LowPassLeastSquareCoefficients(order, fs, cutoffFrequency);
-            var chain = coeff.Calculate();
-            chain.Filter(samples, 0, samples, 0, samples.Length, zeroPhase: true);
-            var filteredSignal = new Signal(samples, 0, samples.Length - chain.PhaseShift);
-
-            Array.Clear(samples, 0, samples.Length);
-            foreach (var frequency in frequencies.TakeWhile(f => f < cutoffFrequency))
-                Helpers.GenerateSinusoid(frequency, fs, samples);
-            var expectedSignal = new Signal(samples);
-
-            var filteredCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, 0);
-            Assert.AreEqual(1, filteredCorrelation, 0.3);
-
-            var originalCorrelation = Signal.CrossCorrelation(originalSignal, filteredSignal, 0);
-            Assert.AreNotEqual(1, originalCorrelation, 0.3);
-            Assert.IsTrue(originalCorrelation < filteredCorrelation);
-
-            for (int i = 1; i <= order; i++)
-            {
-                var crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
-                crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
-            }
+            TestLowPass(order, fs, cutoffFrequency, expected, error, true);
         }
     }
 }

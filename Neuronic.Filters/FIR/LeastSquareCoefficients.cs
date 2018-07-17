@@ -11,7 +11,8 @@ namespace Neuronic.Filters.FIR
         private readonly double[] _frequencies;
         private readonly double[] _amplitudes;
 
-        protected LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) : base(n, fs)
+        protected LeastSquareCoefficients(int n, double fs, IList<double> ff, IList<double> aa) 
+            : base(aa[aa.Count - 1] != 0 && ff[ff.Count - 1] == 1 && n % 2 == 1 ? n + 1 : n, fs)
         {
             if (ff.Count != aa.Count)
                 throw new ArgumentException("The lengths of the frequency and amplitude vectors must match.");
@@ -126,13 +127,17 @@ namespace Neuronic.Filters.FIR
             Debug.Assert(vF.Count % 2 == 0, "The frequency vector must have even length.");
             Debug.Assert(vF.Count == vM.Count, "The frequency and amplitude vectors must have equal length.");
 
+            bool constantWeights;
             if (vW == null)
             {
                 // W = ones(length(F)/2,1);
                 var newW = new List<double>(vF.Count / 2);
                 newW.AddRange(Enumerable.Repeat(1d, vF.Count / 2));
                 vW = newW;
+                constantWeights = true;
             }
+            else
+                constantWeights = vW.All(w => w.Equals(vW[0]));
 
             // Check for valid filter length
             if (vM[vM.Count - 1] != 0 && vF[vF.Count - 1] == 1 && n % 2 == 1)
@@ -174,7 +179,7 @@ namespace Neuronic.Filters.FIR
              */
             var firstK = nOdd ? 0.0 : 0.5;
             // need_matrix = (~fullband) || (~constant_weights);
-            var needMatrix = !fullband;
+            var needMatrix = !fullband || !constantWeights;
             /*
             if need_matrix
                 I1=k(:,ones(size(m)))+m(ones(size(k)),:);    % entries are m + k
