@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Neuronic.Filters.Testing
@@ -63,6 +64,20 @@ namespace Neuronic.Filters.Testing
                 }
             var productMean = sum / count;
             return productMean / (x.StandardDeviation * y.StandardDeviation);
+        }
+
+        public string Export()
+        {
+            return string.Join(",", this.Select(x => x.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        public Signal Extract(int start, int count)
+        {
+            if (start < 0 || start >= Count)
+                throw new IndexOutOfRangeException(nameof(start));
+            if (count < 0 || start + count > Count)
+                throw new ArgumentOutOfRangeException(nameof(count));
+            return new Signal(_samples, start, count);
         }
 
         public override string ToString()

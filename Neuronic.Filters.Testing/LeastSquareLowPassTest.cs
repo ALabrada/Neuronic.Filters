@@ -24,7 +24,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 10;
             const double fs = 44100d;
-            const double cutoffFrequency = 100d;
+            const double cutoffFrequency = 25d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -42,7 +42,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 15;
             const double fs = 44100d;
-            const double cutoffFrequency = 250d;
+            const double cutoffFrequency = 62d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -61,15 +61,15 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 20;
             const double fs = 44100d;
-            const double cutoffFrequency = 1250d;
+            const double cutoffFrequency = 500d;
             const double error = 1e-6;
 
             var expected = new[]
             {
-                0.007151722151675, 0.009222810505808, 0.015186933196523, 0.024516688062819, 0.036333673358802, 0.049495542655145,
-                0.062711289192240, 0.074672841958675, 0.084189241153656, 0.090309309752530, 0.092419896024252, 0.090309309752530,
-                0.084189241153656, 0.074672841958675, 0.062711289192240, 0.049495542655145, 0.036333673358802, 0.024516688062819,
-                0.015186933196523, 0.009222810505808, 0.007151722151675
+                0.006842283497823, 0.008914501335337, 0.014813041026146, 0.024103805930681, 0.035966867791804, 0.049278511611899,
+                0.062729444628505, 0.074966038560548, 0.084738567584520, 0.091039394663403, 0.093215086738670, 0.091039394663403,
+                0.084738567584520, 0.074966038560548, 0.062729444628505, 0.049278511611899, 0.035966867791804, 0.024103805930681,
+                0.014813041026146, 0.008914501335337, 0.006842283497823
             };
 
             TestLowPass(order, fs, cutoffFrequency, expected, error, true);

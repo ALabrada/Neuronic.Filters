@@ -53,7 +53,7 @@ namespace Neuronic.Filters.FIR
         /// <returns><paramref name="f"/> normalized.</returns>
         protected static double NormalizeFrequency(double f, double fs)
         {
-            return 0.5 * f / fs;
+            return 2d * f / fs;
         }
 
         private static double[] GaussJordanElimination(double[,] a, IList<double> b)

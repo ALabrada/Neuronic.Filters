@@ -23,7 +23,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 10;
             const double fs = 44100d;
-            const double cutoffFrequency = 100d;
+            const double cutoffFrequency = 25d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -40,7 +40,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 15;
             const double fs = 44100d;
-            const double cutoffFrequency = 100d;
+            const double cutoffFrequency = 25d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -58,7 +58,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 20;
             const double fs = 44100d;
-            const double cutoffFrequency = 1000d;
+            const double cutoffFrequency = 250d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -77,7 +77,7 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 25;
             const double fs = 44100d;
-            const double cutoffFrequency = 1000d;
+            const double cutoffFrequency = 250d;
             const double error = 1e-6;
 
             var expected = new[]

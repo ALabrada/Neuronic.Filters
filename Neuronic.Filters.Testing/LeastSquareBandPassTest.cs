@@ -21,8 +21,8 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 10;
             const double fs = 44100d;
-            const double f1 = 200d;
-            const double f2 = 800d;
+            const double f1 = 50d;
+            const double f2 = 200d;
             const double error = 1e-6;
             
             var expected = new[]
@@ -39,8 +39,8 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 15;
             const double fs = 44100d;
-            const double f1 = 200d;
-            const double f2 = 800d;
+            const double f1 = 50d;
+            const double f2 = 200d;
             const double error = 1e-6;
             
             var expected = new[]
@@ -58,8 +58,8 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 20;
             const double fs = 44100d;
-            const double f1 = 2000d;
-            const double f2 = 8000d;
+            const double f1 = 500d;
+            const double f2 = 2000d;
             const double error = 1e-6;
 
             var expected = new[]
@@ -78,8 +78,8 @@ namespace Neuronic.Filters.Testing
         {
             const int order = 25;
             const double fs = 44100d;
-            const double f1 = 2000d;
-            const double f2 = 8000d;
+            const double f1 = 500d;
+            const double f2 = 2000d;
             const double error = 1e-6;
 
             var expected = new[]
