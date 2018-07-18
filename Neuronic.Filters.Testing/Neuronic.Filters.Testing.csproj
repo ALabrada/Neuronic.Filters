@@ -76,6 +76,7 @@
     <Compile Include="LeastSquareHighPassTest.cs" />
     <Compile Include="LeastSquareLowPassTest.cs" />
     <Compile Include="FIRFilteringTest.cs" />
+    <Compile Include="IIRFilteringTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
