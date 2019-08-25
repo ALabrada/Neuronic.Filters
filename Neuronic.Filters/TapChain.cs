@@ -17,6 +17,7 @@ namespace Neuronic.Filters
     {
         private readonly double[] _taps;
         private readonly double[] _sr;
+        private int _offset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TapChain"/> class.
@@ -76,6 +77,7 @@ namespace Neuronic.Filters
         public void Reset()
         {
             Array.Clear(_sr, 0, Count);
+            _offset = 0;
         }
 
         private unsafe double DoSample(double* taps, double* sr, double dataSample)
@@ -112,7 +114,7 @@ namespace Neuronic.Filters
             {
                 int n = 0;
                 if (zeroPhase)
-                    for (; n < PhaseShift; n++, input += stride)
+                    for (; _offset < PhaseShift; n++, _offset++, input += stride)
                         DoSample(taps, sr, *input);
                 for (; n < count; n++, input += stride, output += stride)
                     *output = (float) DoSample(taps, sr, *input);
@@ -200,7 +202,7 @@ namespace Neuronic.Filters
             {
                 int n = 0;
                 if (zeroPhase)
-                    for (; n < PhaseShift; n++, input += stride)
+                    for (; _offset < PhaseShift; n++, _offset++, input += stride)
                         DoSample(taps, sr, *input);
                 for (; n < count; n++, input += stride, output += stride)
                     *output = DoSample(taps, sr, *input);
