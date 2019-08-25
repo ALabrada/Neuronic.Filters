@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.1;net45;net40</TargetFrameworks>
+    <TargetFrameworks>netstandard1.1;netstandard2.0;net45;net40</TargetFrameworks>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>Signature.snk</AssemblyOriginatorKeyFile>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
@@ -26,7 +26,7 @@
     <PackageLicenseUrl>https://github.com/ALabrada/Neuronic.Filters/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ALabrada/Neuronic.Filters</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
-    <Version>1.1.0</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)'=='netstandard1.1'">
