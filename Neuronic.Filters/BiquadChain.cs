@@ -109,7 +109,8 @@ namespace Neuronic.Filters
         /// <remarks>
         /// This method will reset the filter.
         /// </remarks>
-        public unsafe void Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count, int stride=1)
+        public unsafe int Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count,
+            int stride = 1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
             if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
@@ -125,6 +126,8 @@ namespace Neuronic.Filters
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
+
+            return count;
         }
 
         /// <summary>
@@ -207,7 +210,8 @@ namespace Neuronic.Filters
         /// <remarks>
         /// This method will reset the filter.
         /// </remarks>
-        public unsafe void Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1)
+        public unsafe int Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count,
+            int stride = 1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
             if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
@@ -223,6 +227,8 @@ namespace Neuronic.Filters
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
                 Reset();
             }
+
+            return count;
         }
 
         /// <summary>

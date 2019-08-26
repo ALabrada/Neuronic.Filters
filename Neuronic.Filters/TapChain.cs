@@ -8,16 +8,15 @@ namespace Neuronic.Filters
     /// <summary>
     /// Represents a linear-phase finite impulse response (FIR) digital filter.
     /// </summary>
-    public class TapChain : IZeroPhaseDigitalFilter
+    public class TapChain:
 #if NET40
-        , IEnumerable<double>
+        IEnumerable<double>
 #else
-        , IReadOnlyList<double>
+        IReadOnlyList<double>
 #endif
     {
         private readonly double[] _taps;
         private readonly double[] _sr;
-        private int _offset;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TapChain"/> class.
@@ -74,13 +73,19 @@ namespace Neuronic.Filters
         /// <summary>
         /// Reset's the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
             Array.Clear(_sr, 0, Count);
-            _offset = 0;
         }
 
-        private unsafe double DoSample(double* taps, double* sr, double dataSample)
+        /// <summary>
+        /// Processes the specified sample.
+        /// </summary>
+        /// <param name="taps">A buffer with the filter coefficients.</param>
+        /// <param name="sr">A buffer with the last n processed samples.</param>
+        /// <param name="dataSample">The sample to filter.</param>
+        /// <returns>The processed sample.</returns>
+        protected unsafe double DoSample(double* taps, double* sr, double dataSample)
         {
             var tapCount = Count;
 
@@ -103,21 +108,48 @@ namespace Neuronic.Filters
         /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
         /// <param name="count">The number of samples to process.</param>
         /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <param name="zeroPhase">
-        /// If set to <c>true</c>, the output buffer will be shifted <see cref="PhaseShift"/> samples left
-        /// in order to achieve a zero phase response. Therefore, the output buffer will have 
-        /// <see cref="PhaseShift"/> samples less.
-        /// </param>
-        public unsafe void Filter(float* input, float* output, int count, int stride, bool zeroPhase)
+        /// <param name="taps">A buffer with the filter coefficients.</param>
+        /// <param name="sr">A buffer with the last n processed samples.</param>
+        protected virtual unsafe int ProtectedFilter(float* input, float* output, int count, int stride, double* taps,
+            double* sr)
         {
+            for (var n = 0; n < count; n++, input += stride, output += stride)
+                *output = (float)DoSample(taps, sr, *input);
+            return count;
+        }
+
+        /// <summary>
+        /// Filters the specified double-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <param name="taps">A buffer with the filter coefficients.</param>
+        /// <param name="sr">A buffer with the last n processed samples.</param>
+        protected virtual unsafe int ProtectedFilter(double* input, double* output, int count, int stride, double* taps,
+            double* sr)
+        {
+            for (int n = 0; n < count; n++, input += stride, output += stride)
+                *output = DoSample(taps, sr, *input);
+            return count;
+        }
+
+        /// <summary>
+        /// Filters the specified single-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <returns>How many samples were actually written to <paramref name="output"/>.</returns>
+        public virtual unsafe int Filter(float* input, float* output, int count, int stride)
+        {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (double* taps = _taps, sr = _sr)
             {
-                int n = 0;
-                if (zeroPhase)
-                    for (; _offset < PhaseShift; n++, _offset++, input += stride)
-                        DoSample(taps, sr, *input);
-                for (; n < count; n++, input += stride, output += stride)
-                    *output = (float) DoSample(taps, sr, *input);
+                return ProtectedFilter(input, output, count, stride, taps, sr);                
             }
         }
 
@@ -130,32 +162,6 @@ namespace Neuronic.Filters
         /// <param name="outputIndex">The starting index in <paramref name="output" />.</param>
         /// <param name="count">The number of samples to process.</param>
         /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        /// count
-        /// or
-        /// inputIndex
-        /// or
-        /// outputIndex
-        /// or
-        /// count - There is not enough space in the arrays
-        /// or
-        /// stride
-        /// </exception>
-        void IZeroPhaseDigitalFilter.Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count, int stride = 1)
-        {
-            Filter(input, inputIndex, output, outputIndex, count, stride, true);
-        }
-
-        /// <summary>
-        /// Filters the specified single-precision sample buffer.
-        /// </summary>
-        /// <param name="input">The source buffer.</param>
-        /// <param name="inputIndex">The starting index in <paramref name="input" />.</param>
-        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
-        /// <param name="outputIndex">The starting index in <paramref name="output" />.</param>
-        /// <param name="count">The number of samples to process.</param>
-        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <param name="zeroPhase">
         /// If set to <c>true</c>, the output buffer will be shifted <see cref="PhaseShift"/> samples left
         /// in order to achieve a zero phase response. Therefore, the output buffer will have 
         /// <see cref="PhaseShift"/> samples less.
@@ -169,19 +175,18 @@ namespace Neuronic.Filters
         /// count - There is not enough space in the arrays
         /// or
         /// stride</exception>
-        public unsafe void Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count, int stride = 1, bool zeroPhase = false)
+        public virtual unsafe int Filter(float[] input, int inputIndex, float[] output, int outputIndex, int count, int stride = 1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
-            if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
-            if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
-            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
-                zeroPhase && outputIndex + (count - PhaseShift) * stride > output.Length ||
-                !zeroPhase && outputIndex + count * stride > output.Length ||
-                outputIndex + count * stride < 0)
+            if (inputIndex < 0 || inputIndex >= input.Length) throw new ArgumentOutOfRangeException(nameof(inputIndex));
+            if (outputIndex < 0 || outputIndex >= output.Length) throw new ArgumentOutOfRangeException(nameof(outputIndex));
+            var inputEnd = inputIndex + count * stride;
+            var outputEnd = outputIndex + count * stride;
+            if (inputEnd > input.Length || inputEnd < 0 ||
+                outputEnd > output.Length || outputEnd < 0)
                 throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
-            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (float* inputPtr = input, outputPtr = output)
-                Filter(inputPtr + inputIndex, outputPtr + outputIndex, count, stride, zeroPhase);
+                return Filter(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
         }
 
         /// <summary>
@@ -191,21 +196,13 @@ namespace Neuronic.Filters
         /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
         /// <param name="count">The number of samples to process.</param>
         /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <param name="zeroPhase">
-        /// If set to <c>true</c>, the output buffer will be shifted <see cref="PhaseShift"/> samples left
-        /// in order to achieve a zero phase response. Therefore, the output buffer will have 
-        /// <see cref="PhaseShift"/> samples less.
-        /// </param>
-        public unsafe void Filter(double* input, double* output, int count, int stride, bool zeroPhase)
+        public virtual unsafe int Filter(double* input, double* output, int count, int stride)
         {
+            if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (double* taps = _taps, sr = _sr)
             {
-                int n = 0;
-                if (zeroPhase)
-                    for (; _offset < PhaseShift; n++, _offset++, input += stride)
-                        DoSample(taps, sr, *input);
-                for (; n < count; n++, input += stride, output += stride)
-                    *output = DoSample(taps, sr, *input);
+                return ProtectedFilter(input, output, count, stride, taps, sr);
             }
         }
 
@@ -218,36 +215,6 @@ namespace Neuronic.Filters
         /// <param name="outputIndex">The starting index in <paramref name="output" />.</param>
         /// <param name="count">The number of samples to process.</param>
         /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <exception cref="System.ArgumentOutOfRangeException">
-        /// count
-        /// or
-        /// inputIndex
-        /// or
-        /// outputIndex
-        /// or
-        /// count - There is not enough space in the arrays
-        /// or
-        /// stride
-        /// </exception>
-        void IZeroPhaseDigitalFilter.Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1)
-        {
-            Filter(input, inputIndex, output, outputIndex, count, stride, true);
-        }
-
-        /// <summary>
-        /// Filters the specified double-precision sample buffer.
-        /// </summary>
-        /// <param name="input">The source buffer.</param>
-        /// <param name="inputIndex">The starting index in <paramref name="input" />.</param>
-        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
-        /// <param name="outputIndex">The starting index in <paramref name="output" />.</param>
-        /// <param name="count">The number of samples to process.</param>
-        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
-        /// <param name="zeroPhase">
-        /// If set to <c>true</c>, the output buffer will be shifted <see cref="PhaseShift"/> samples left
-        /// in order to achieve a zero phase response. Therefore, the output buffer will have 
-        /// <see cref="PhaseShift"/> samples less.
-        /// </param>
         /// <exception cref="System.ArgumentOutOfRangeException">count
         /// or
         /// inputIndex
@@ -257,19 +224,27 @@ namespace Neuronic.Filters
         /// count - There is not enough space in the arrays
         /// or
         /// stride</exception>
-        public unsafe void Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1, bool zeroPhase = false)
+        public virtual unsafe int Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1)
         {
             if (count <= 0) throw new ArgumentOutOfRangeException(nameof(count));
-            if (inputIndex < 0) throw new ArgumentOutOfRangeException(nameof(inputIndex));
-            if (outputIndex < 0) throw new ArgumentOutOfRangeException(nameof(outputIndex));
-            if (inputIndex + count * stride > input.Length || inputIndex + count * stride < 0 ||
-                zeroPhase && outputIndex + (count - PhaseShift) * stride > output.Length || 
-                !zeroPhase && outputIndex + count * stride > output.Length || 
-                outputIndex + count * stride < 0)
-                throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
-            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            if (inputIndex < 0 || inputIndex >= input.Length) throw new ArgumentOutOfRangeException(nameof(inputIndex));
+            if (outputIndex < 0 || outputIndex >= output.Length) throw new ArgumentOutOfRangeException(nameof(outputIndex));
+            var inputEnd = inputIndex + count * stride;
+            var outputEnd = outputIndex + count * stride;
+            if (inputEnd > input.Length || inputEnd < 0 ||
+                outputEnd > output.Length || outputEnd < 0)
+                throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");            
             fixed (double* inputPtr = input, outputPtr = output)
-                Filter(inputPtr + inputIndex, outputPtr + outputIndex, count, stride, zeroPhase);
+                return Filter(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
+        }
+        
+        /// <summary>
+        /// Builds a zero-phase version of this filter that works by removing the linear-phase delay.
+        /// </summary>
+        /// <returns>A <see cref="ZeroPhaseTapChain"/> filter with the same properties.</returns>
+        public ZeroPhaseTapChain ToZeroPhase()
+        {
+            return new ZeroPhaseTapChain(_taps);
         }
     }
 }

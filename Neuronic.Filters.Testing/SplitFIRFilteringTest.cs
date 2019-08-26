@@ -7,7 +7,7 @@ using Neuronic.Filters.FIR;
 namespace Neuronic.Filters.Testing
 {
     [TestClass]
-    public class FIRFilteringTest
+    public class SplitFIRFilteringTest
     {
         private static void TestFilter(int order, int fs, int cycles, FiniteImpulseResponseCoefficients coeff,
             IEnumerable<double> frequencies, IEnumerable<double> validFrequencies)
@@ -18,7 +18,11 @@ namespace Neuronic.Filters.Testing
             var originalSignal = new Signal(samples);
 
             var chain = coeff.Calculate().ToZeroPhase();
-            chain.Filter(samples, 0, samples, 0, samples.Length);
+            var offset = 0;
+            for (int i = 0; i < samples.Length; i += 100)
+                offset += chain.Filter(samples, i, samples, offset, Math.Min(100, samples.Length - i));
+            Assert.AreEqual(samples.Length - chain.PhaseShift, offset);
+
             var filteredSignal = new Signal(samples, 0, samples.Length - chain.PhaseShift);
 
             Array.Clear(samples, 0, samples.Length);
@@ -36,7 +40,7 @@ namespace Neuronic.Filters.Testing
                 crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
                 Assert.IsTrue(crossCorrelation < filteredCorrelation);
             }
-            
+
             Assert.AreEqual(1, filteredCorrelation, 0.1);
             Assert.AreNotEqual(1, originalCorrelation, 0.1);
             Assert.IsTrue(originalCorrelation < filteredCorrelation);
