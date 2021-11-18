@@ -256,6 +256,95 @@ namespace Neuronic.Filters
             }
         }
 
+#if !NET40
+        /// <summary>
+        /// Executes two sweeps of the filter (forward and backward). This is a zero-phase filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <remarks>
+        /// This method will reset the filter.
+        /// </remarks>
+        public unsafe int Filter(ReadOnlySpan<float> input, Span<float> output, int count, int stride)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (float* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr, outputPtr, count, stride);
+                Reset();
+                FilterOnce(outputPtr + count - 1, outputPtr + count - 1, count, -stride);
+                Reset();
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(ReadOnlySpan<float> input, Span<float> output, int count,
+            int stride = 1)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (float* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr, outputPtr, count, stride);
+            }
+        }
+
+        /// <summary>
+        /// Executes two sweeps of the filter (forward and backward). This is a zero-phase filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <remarks>
+        /// This method will reset the filter.
+        /// </remarks>
+        public unsafe int Filter(ReadOnlySpan<double> input, Span<double> output, int count,
+            int stride = 1)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (double* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr, outputPtr, count, stride);
+                Reset();
+                FilterOnce(outputPtr + count - 1, outputPtr + count - 1, count, -stride);
+                Reset();
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Executes one sweep of the filter.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        public unsafe void FilterOnce(ReadOnlySpan<double> input, Span<double> output, int count,
+            int stride = 1)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            if (stride == 0) throw new ArgumentOutOfRangeException(nameof(stride));
+            fixed (double* inputPtr = input, outputPtr = output)
+            {
+                FilterOnce(inputPtr, outputPtr, count, stride);
+            }
+        }
+#endif
+
         /// <summary>Returns an enumerator that iterates through the collection.</summary>
         /// <returns>An enumerator that can be used to iterate through the collection.</returns>
         /// <filterpriority>1</filterpriority>

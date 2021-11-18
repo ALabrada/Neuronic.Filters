@@ -237,7 +237,59 @@ namespace Neuronic.Filters
             fixed (double* inputPtr = input, outputPtr = output)
                 return Filter(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
         }
-        
+
+#if !NET40
+        /// <summary>
+        /// Filters the specified single-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// If set to <c>true</c>, the output buffer will be shifted <see cref="PhaseShift"/> samples left
+        /// in order to achieve a zero phase response. Therefore, the output buffer will have 
+        /// <see cref="PhaseShift"/> samples less.
+        /// </param>
+        /// <exception cref="System.ArgumentOutOfRangeException">count
+        /// or
+        /// inputIndex
+        /// or
+        /// outputIndex
+        /// or
+        /// count - There is not enough space in the arrays
+        /// or
+        /// stride</exception>
+        public virtual unsafe int Filter(ReadOnlySpan<float> input, Span<float> output, int count, int stride = 1)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            fixed (float* inputPtr = input, outputPtr = output)
+                return Filter(inputPtr, outputPtr, count, stride);
+        }
+
+        /// <summary>
+        /// Filters the specified double-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input" /> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <exception cref="System.ArgumentOutOfRangeException">count
+        /// or
+        /// inputIndex
+        /// or
+        /// outputIndex
+        /// or
+        /// count - There is not enough space in the arrays
+        /// or
+        /// stride</exception>
+        public virtual unsafe int Filter(ReadOnlySpan<double> input, Span<double> output, int count, int stride = 1)
+        {
+            if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
+            fixed (double* inputPtr = input, outputPtr = output)
+                return Filter(inputPtr, outputPtr, count, stride);
+        }
+#endif
+
         /// <summary>
         /// Builds a zero-phase version of this filter that works by removing the linear-phase delay.
         /// </summary>

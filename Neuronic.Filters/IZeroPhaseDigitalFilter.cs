@@ -1,3 +1,5 @@
+using System;
+
 namespace Neuronic.Filters
 {
     /// <summary>
@@ -33,5 +35,29 @@ namespace Neuronic.Filters
         /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
         /// <returns>How many samples were actually written to <paramref name="output"/>.</returns>
         int Filter(double[] input, int inputIndex, double[] output, int outputIndex, int count, int stride = 1);
+
+#if !NET40
+
+        /// <summary>
+        /// Filters the specified single-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <returns>How many samples were actually written to <paramref name="output"/>.</returns>
+        int Filter(ReadOnlySpan<float> input, Span<float> output, int count, int stride = 1);
+
+        /// <summary>
+        /// Filters the specified double-precision sample buffer.
+        /// </summary>
+        /// <param name="input">The source buffer.</param>
+        /// <param name="output">The destination buffer. (Use the same value of <paramref name="input"/> to execute in place).</param>
+        /// <param name="count">The number of samples to process.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <returns>How many samples were actually written to <paramref name="output"/>.</returns>
+        int Filter(ReadOnlySpan<double> input, Span<double> output, int count, int stride = 1);
+
+#endif
     }
 }
