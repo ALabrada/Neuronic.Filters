@@ -29,46 +29,15 @@ namespace Neuronic.Filters.Butterwoth
         /// </summary>
         public double CutoffFrequency { get; }
 
-        /// <inheritdoc />
-        protected override int NumFilters => (FilterOrder + 1) / 2;
-
-        /// <summary>
-        /// Convert lowpass poles & zeros to highpass with Wc = f2, use:  hp_S = Wc / lp_S;
-        /// </summary>
-        /// <param name="freq">The freq.</param>
-        /// <param name="poles">The poles.</param>
-        /// <param name="zeros">The zeros.</param>
-        /// <returns></returns>
-        private static double ConvertToHighPass(double freq, IList<Complex> poles, IList<Complex> zeros)
+        public override double Calculate(IList<Biquad> coeffs)
         {
-            // Calculate gain
-            var prodz = zeros.Aggregate(new Complex(1, 0), (current, zero) => current * -zero);
-            var prodp = poles.Aggregate(new Complex(1, 0), (current, pole) => current * -pole);
-            var gain = prodz.Real / prodp.Real;
+            AnalogDesign();
 
-            // Convert LP poles to HP
-            for (int i = 0; i < poles.Count; i++)
-                if (!poles[i].Equals(Complex.Zero))
-                    poles[i] = freq / poles[i];
+            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
 
-            // Init with zeros, no non-zero values to convert
-            zeros.Clear();
-            for (int i = 0; i < poles.Count; i++)
-                zeros.Add(Complex.Zero);
+            DigitalProto.SetLayout(coeffs);
 
-            return gain;
-        }
-
-        /// <inheritdoc />
-        protected override double ConvertPoles()
-        {
-            return ConvertToHighPass(_freq, Poles, Zeros);
-        }
-
-        /// <inheritdoc />
-        protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
-        {
-            ba[0] = 1d / ba[0];
+            return 1d;
         }
     }
 }

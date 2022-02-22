@@ -28,33 +28,15 @@ namespace Neuronic.Filters.Butterwoth
         /// </summary>
         public double CutoffFrequency { get; }
 
-        /// <inheritdoc />
-        protected override int NumFilters => (FilterOrder + 1) / 2;
-
-        /// <summary>
-        ///     Convert analog lowpass prototype poles to lowpass
-        /// </summary>
-        private static double ConvertToLowPass(double freq, IList<Complex> poles, IList<Complex> zeros)
+        public override double Calculate(IList<Biquad> coeffs)
         {
-            var gain = Math.Pow(freq, poles.Count);
+            AnalogDesign();
 
-            zeros.Clear();
-            for (var i = 0; i < poles.Count; i++)
-                poles[i] = freq * poles[i];
+            Helpers.LowPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
 
-            return gain;
-        }
+            DigitalProto.SetLayout(coeffs);
 
-        /// <inheritdoc />
-        protected override double ConvertPoles()
-        {
-            return ConvertToLowPass(_freq, Poles, Zeros);
-        }
-
-        /// <inheritdoc />
-        protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
-        {
-            ba[0] = preBLTgain * (preBLTgain / gain);
+            return 1d;
         }
     }
 }

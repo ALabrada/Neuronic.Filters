@@ -1,22 +1,13 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
+using System.Text;
 
-namespace Neuronic.Filters.Butterwoth
+namespace Neuronic.Filters.Chebyshev
 {
-    /// <summary>
-    /// Base class for the butterwoth filters.
-    /// </summary>
-    public abstract class ButtersworthCoefficients : IBiquadCoefficients
+    public abstract class ChebyshevCoefficients : IBiquadCoefficients
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="ButtersworthCoefficients"/>.
-        /// </summary>
-        /// <param name="filterOrder">The order of the filter.</param>
-        /// <param name="fs">The sampling frequency.</param>
-        protected ButtersworthCoefficients(int filterOrder, double fs)
+        protected ChebyshevCoefficients(int filterOrder, double fs)
         {
             FilterOrder = filterOrder;
             SamplingFrequency = fs;
@@ -29,6 +20,9 @@ namespace Neuronic.Filters.Butterwoth
         /// Gets the order of the filter.
         /// </summary>
         public int FilterOrder { get; }
+
+        public double RippleDb { get; }
+
         /// <summary>
         /// Gets the sampling frequency of the filter.
         /// </summary>
@@ -41,34 +35,48 @@ namespace Neuronic.Filters.Butterwoth
         protected void AnalogDesign()
         {
             var numPoles = FilterOrder;
+            var rippleDb = RippleDb;
 
             AnalogProto.Clear();
+
+            var eps = Math.Sqrt(1.0 / Math.Exp(-rippleDb * 0.1 * Helpers.Ln10) - 1);
+            var v0 = Helpers.Asinh(1 / eps) / numPoles;
+            var sinh_v0 = -Math.Sinh(v0);
+            var cosh_v0 = Math.Cosh(v0);
 
             var n2 = 2 * numPoles;
             var pairs = numPoles / 2;
             for (int i = 0; i < pairs; ++i)
             {
-                var pi2 = Math.PI / 2.0;
-                var c = Complex.FromPolarCoordinates(1.0, Math.PI / 2.0 + (2 * i + 1) * Math.PI / n2);
-                AnalogProto.AddPoleZeroConjugatePairs(c, Helpers.Infinity());
+                var k = 2 * i + 1 - numPoles;
+                var a = sinh_v0 * Math.Cos(k * Math.PI / n2);
+                var b = cosh_v0 * Math.Sin(k * Math.PI / n2);
+
+                //addPoleZero (complex_t (a, b), infinity());
+                //addPoleZero (complex_t (a, -b), infinity());
+                AnalogProto.AddPoleZeroConjugatePairs(new Complex(a, b), Helpers.Infinity());
             }
 
             if ((numPoles & 1) != 0)
-                AnalogProto.Add(-1, Helpers.Infinity());
+            {
+                AnalogProto.Add(new Complex(sinh_v0, 0), Helpers.Infinity());
+                AnalogProto.NormalW = 0;
+                AnalogProto.NormalGain = 1;
+            }
+            else
+            {
+                AnalogProto.NormalW = 0;
+                AnalogProto.NormalGain = Math.Pow(10, -rippleDb / 20.0);
+            }
         }
 
-        /// <summary>
-        /// Calculates a set of coefficients for a filter.
-        /// </summary>
-        /// <param name="coeffs">The container for the coefficients.</param>
-        /// <returns>The gain of the filter.</returns>
         public abstract double Calculate(IList<Biquad> coeffs);
 
         /// <summary>
         /// Creates a <see cref="BiquadChain"/> using the results from <see cref="Calculate(System.Collections.Generic.IList{Neuronic.Filters.Biquad})"/>.
         /// </summary>
         /// <returns>A biquad chain.</returns>
-        public BiquadChain Calculate()
+        public virtual BiquadChain Calculate()
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
             var gain = Calculate(coeffs);
@@ -76,3 +84,4 @@ namespace Neuronic.Filters.Butterwoth
         }
     }
 }
+

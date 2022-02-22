@@ -42,65 +42,17 @@ namespace Neuronic.Filters.Butterwoth
         /// </summary>
         public double SecondCutoffFrequency { get; }
 
-        /// <inheritdoc />
-        protected override int NumFilters => FilterOrder;
-
-        /// <inheritdoc />
-        protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
+        public override double Calculate(IList<Biquad> coeffs)
         {
-            ba[0] = 1d / ba[0];
-        }
+            AnalogDesign();
 
-        /// <inheritdoc />
-        protected override double ConvertPoles()
-        {
-            return ConvertBandStop(_f1, _f2, Poles, Zeros);
-        }
+            var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
+            var width = Math.Abs(FirstCutoffFrequency - center);
+            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
 
-        private static double ConvertBandStop(double f1, double f2, IList<Complex> poles,
-            IList<Complex> zeros)
-        {
-            var bw = f2 - f1;
-            var wc = Math.Sqrt(f1 * f2);
+            DigitalProto.SetLayout(coeffs);
 
-            // Compute gain
-            var prodz = zeros.Aggregate(new Complex(1, 0), (current, zero) => current * -zero);
-            var prodp = poles.Aggregate(new Complex(1, 0), (current, pole) => current * -pole);
-            var gain = prodz.Real / prodp.Real;
-
-            // Convert LP zeros to band stop
-            var ztmp = new List<Complex>(2 * poles.Count);
-            for (int i = 0; i < poles.Count; i++)
-            {
-                ztmp.Add(new Complex(0, wc));
-                ztmp.Add(new Complex(0, -wc));
-            }
-
-            var tempPoles = new List<Complex>(poles.Count * 2);
-            // First set of poles + conjugates
-            tempPoles.AddRange(from pole in poles
-                where !pole.Equals(Complex.Zero)
-                let term1 = 0.5 * bw / pole
-                let term2 = 0.5 * Complex.Sqrt((bw * bw) / (pole * pole) - (4 * wc * wc))
-                select term1 + term2);
-            // Second set of poles + conjugates
-            tempPoles.AddRange(from pole in poles
-                where !pole.Equals(Complex.Zero)
-                let term1 = 0.5 * bw / pole
-                let term2 = 0.5 * Complex.Sqrt((bw * bw) / (pole * pole) - (4 * wc * wc))
-                select term1 - term2);
-
-            // Copy converted zeros to output array
-            zeros.Clear();
-            foreach (var zero in ztmp)
-                zeros.Add(zero);
-
-            // Copy converted poles to output array
-            poles.Clear();
-            foreach (var pole in tempPoles)
-                poles.Add(pole);
-
-            return gain;
+            return 1d;
         }
     }
 }
