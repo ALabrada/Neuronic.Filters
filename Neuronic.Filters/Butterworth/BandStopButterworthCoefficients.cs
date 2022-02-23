@@ -10,8 +10,6 @@ namespace Neuronic.Filters.Butterworth
     /// </summary>
     public class BandStopButterworthCoefficients : ButterworthCoefficients
     {
-        private readonly double _f1, _f2;
-
         /// <summary>
         /// Initializes a new instance of <see cref="BandStopButterworthCoefficients"/>.
         /// </summary>
@@ -29,8 +27,6 @@ namespace Neuronic.Filters.Butterworth
             }
             FirstCutoffFrequency = f1;
             SecondCutoffFrequency = f2;
-            _f1 = 2 * Math.Tan(Math.PI * f1 / fs);
-            _f2 = 2 * Math.Tan(Math.PI * f2 / fs);
         }
 
         /// <summary>
@@ -46,13 +42,13 @@ namespace Neuronic.Filters.Butterworth
         {
             AnalogDesign();
 
+            var digitalProto = new Layout(AnalogProto.Count * 2);
+
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandStopTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandStopTransform(center / SamplingFrequency, width / SamplingFrequency, digitalProto, AnalogProto);
 
-            DigitalProto.SetLayout(coeffs);
-
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 }

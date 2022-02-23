@@ -292,9 +292,8 @@ namespace Neuronic.Filters
                 digital.NormalW = 0;
             digital.NormalGain = analog.NormalGain;
         }
-
-
-        public static void SetLayout(this Layout proto, IList<Biquad> stages)
+        
+        public static double SetLayout(this Layout proto, IList<Biquad> stages)
         {
             var numPoles = proto.NumberOfPoles;
             var numStages = (numPoles + 1) / 2;
@@ -302,8 +301,12 @@ namespace Neuronic.Filters
             for (int i = 0; i < numStages; ++i)
                 stages.Add(Biquad.FromPoleZeroPair(proto[i]));
 
-            var scale = proto.NormalGain /
+            return proto.NormalGain /
                 stages.GetResponse(proto.NormalW / (2 * Math.PI)).Magnitude;
+        }
+
+        public static void Scale(this IList<Biquad> stages, double scale)
+        {
             stages[0] *= scale;
         }
     }

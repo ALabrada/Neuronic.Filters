@@ -20,7 +20,7 @@ namespace Neuronic.Filters.Testing
 
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
-            var chain = new DirectFormIIBiquadChain(coeffs);
+            var chain = new DirectFormIIBiquadChain(coeffs, gain);
             chain.Filter(samples, 0, samples, 0, samples.Length);
             var filteredSignal = new Signal(samples, fs, samples.Length - 2 * fs);
 
@@ -124,7 +124,7 @@ namespace Neuronic.Filters.Testing
 
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
-            var chain = new DirectFormIBiquadChain(coeffs);
+            var chain = new DirectFormIBiquadChain(coeffs, gain);
             chain.Filter(samples, 0, samples, 0, samples.Length);
         }
     }

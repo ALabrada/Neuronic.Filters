@@ -37,13 +37,13 @@ namespace Neuronic.Filters.Chebyshev
         {
             AnalogDesign();
 
+            var digitalProto = new Layout(AnalogProto.Count * 2);
+
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, digitalProto, AnalogProto);
 
-            DigitalProto.SetLayout(coeffs);
-
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 
@@ -81,13 +81,13 @@ namespace Neuronic.Filters.Chebyshev
         {
             AnalogDesign();
 
+            var digitalProto = new Layout(AnalogProto.Count * 2);
+
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, digitalProto, AnalogProto);
 
-            DigitalProto.SetLayout(coeffs);
-
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 }

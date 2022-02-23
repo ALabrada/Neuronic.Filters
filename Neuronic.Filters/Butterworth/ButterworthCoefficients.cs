@@ -23,7 +23,6 @@ namespace Neuronic.Filters.Butterworth
             SamplingFrequency = fs;
 
             AnalogProto = new Layout(FilterOrder);
-            DigitalProto = new Layout(FilterOrder);
         }
 
         /// <summary>
@@ -36,8 +35,6 @@ namespace Neuronic.Filters.Butterworth
         public double SamplingFrequency { get; set; }
 
         internal Layout AnalogProto { get; }
-
-        internal Layout DigitalProto { get; }
 
         protected void AnalogDesign()
         {
@@ -71,8 +68,8 @@ namespace Neuronic.Filters.Butterworth
         public BiquadChain Calculate()
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
-            Calculate(coeffs);
-            return new DirectFormIIBiquadChain(coeffs);
+            var gain = Calculate(coeffs);
+            return new DirectFormIIBiquadChain(coeffs, gain);
         }
     }
 }

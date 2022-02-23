@@ -10,8 +10,6 @@ namespace Neuronic.Filters.Butterworth
     public class LowPassButterworthCoefficients
         : ButterworthCoefficients
     {
-        private readonly double _freq;
-
         /// <summary>
         /// Initializes a new instance of <see cref="LowPassButterworthCoefficients"/>.
         /// </summary>
@@ -21,7 +19,6 @@ namespace Neuronic.Filters.Butterworth
         public LowPassButterworthCoefficients(int filterOrder, double fs, double cutoffFrequency) : base(filterOrder, fs)
         {
             CutoffFrequency = cutoffFrequency;
-            _freq = 2 * Math.Tan(Math.PI * cutoffFrequency / fs);
         }
 
         /// <summary>
@@ -33,11 +30,11 @@ namespace Neuronic.Filters.Butterworth
         {
             AnalogDesign();
 
-            Helpers.LowPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
+            var digitalProto = new Layout(AnalogProto.Count);
 
-            DigitalProto.SetLayout(coeffs);
+            Helpers.LowPassTransform(CutoffFrequency / SamplingFrequency, digitalProto, AnalogProto);
 
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 }

@@ -22,11 +22,17 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        protected BiquadChain(IList<Biquad> coefficients)
+        protected BiquadChain(IList<Biquad> coefficients, double gain)
         {
             _coeffs = new Biquad[coefficients.Count];
             coefficients.CopyTo(_coeffs, 0);
+            Gain = gain;
         }
+
+        /// <summary>
+        /// Gets the overall gain of the filter.
+        /// </summary>
+        public double Gain { get; }
 
         /// <summary>
         /// Reset's the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
@@ -284,11 +290,13 @@ namespace Neuronic.Filters
     public class DirectFormIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
-        private double _ac = 1e-8;
+        private double _ac;
 
-        public DirectFormIBiquadChain(IList<Biquad> coefficients) : base(coefficients)
+        public DirectFormIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
         {
             _states = new State[Count];
+            _ac = ac;
+            Stages.Scale(gain);
         }
 
         public override void Reset()
@@ -358,11 +366,12 @@ namespace Neuronic.Filters
     public class DirectFormIIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
-        private double _ac = 1e-8;
+        private double _ac;
 
-        public DirectFormIIBiquadChain(IList<Biquad> coefficients) : base(coefficients)
+        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, gain)
         {
             _states = new State[Count];
+            _ac = ac;
         }
 
         public override void Reset()
@@ -372,7 +381,7 @@ namespace Neuronic.Filters
 
         private unsafe double FilterSample(double input, State* state, Biquad* stage)
         {
-            var result = input;
+            var result = input * Gain;
             var ac = (_ac *= -1);
             result = state[0].Process(result, stage[0], ac);
             for (int i = 1; i < Count; i++)

@@ -18,11 +18,11 @@ namespace Neuronic.Filters.Chebyshev
         {
             AnalogDesign();
 
-            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
+            var digitalProto = new Layout(AnalogProto.Count);
 
-            DigitalProto.SetLayout(coeffs);
+            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, digitalProto, AnalogProto);
 
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 
@@ -42,11 +42,11 @@ namespace Neuronic.Filters.Chebyshev
         {
             AnalogDesign();
 
-            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
+            var digitalProto = new Layout(AnalogProto.Count);
 
-            DigitalProto.SetLayout(coeffs);
+            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, digitalProto, AnalogProto);
 
-            return 1d;
+            return digitalProto.SetLayout(coeffs);
         }
     }
 }
