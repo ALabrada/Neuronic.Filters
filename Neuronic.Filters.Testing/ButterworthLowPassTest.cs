@@ -115,5 +115,26 @@ namespace Neuronic.Filters.Testing
             }
             Assert.IsTrue(peakSet.SetEquals(frequencies.Where(x => x < cutoffFrequency)));
         }
+
+        [TestMethod]
+        public void TestLowPass2()
+        {
+            const int order = 2;
+            const double fs = 44100d;
+            const double cutoffFrequency = 2000d;
+            const double error = 1e-4;
+
+            var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
+            var chain = coeff.Calculate();
+
+            var expected = new[]
+            {
+                new Biquad(0.016819150107057118, 0.033638300214114236, 0.016819150107057118, 1, -1.6010923941836190, 0.66836899461184751),
+            };
+
+            Assert.AreEqual(expected.Length, chain.Count);
+            for (int i = 0; i < expected.Length; i++)
+                Helpers.ValidateBiquad(expected[i], chain[i], error);
+        }
     }
 }

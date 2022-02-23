@@ -16,6 +16,8 @@ namespace Neuronic.Filters
 
         public static bool IsInfinity(this Complex c) => double.IsInfinity(c.Real) || double.IsInfinity(c.Imaginary);
 
+        public static double MagnitudeSquared(this Complex c) => c.Real * c.Real + c.Imaginary * c.Imaginary;
+
         public static Complex AddMul(Complex c, double v, Complex c1)
         {
             return new Complex(c.Real + v * c1.Real, c.Imaginary + v * c1.Imaginary);
@@ -298,7 +300,7 @@ namespace Neuronic.Filters
             var m_numStages = (numPoles + 1) / 2;
 
             for (int i = 0; i < m_numStages; ++i)
-                stages.Add(Biquad.FromPoleZeroPair(proto[i]) * proto.NormalGain);
+                stages.Add(Biquad.FromPoleZeroPair(proto[i]));
 
             var scale = proto.NormalGain /
                 stages.GetResponse(proto.NormalW / (2 * Math.PI)).Magnitude;

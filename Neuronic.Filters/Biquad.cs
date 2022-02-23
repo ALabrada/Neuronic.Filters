@@ -80,7 +80,7 @@ namespace Neuronic.Filters
             if (pole1.Imaginary != 0)
             {
                 a1 = -2 * pole1.Real;
-                a2 = pole1.Magnitude;
+                a2 = pole1.MagnitudeSquared();
             }
             else
             {
@@ -95,7 +95,7 @@ namespace Neuronic.Filters
             if (zero1.Imaginary != 0)
             {
                 b1 = -2 * zero1.Real;
-                b2 = zero1.Magnitude;
+                b2 = zero1.MagnitudeSquared();
             }
             else
             {

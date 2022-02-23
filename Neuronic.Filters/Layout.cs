@@ -30,7 +30,7 @@ namespace Neuronic.Filters
 
         public double NormalW { get; set; }
 
-        public double NormalGain { get; set; }
+        public double NormalGain { get; set; } = 1d;
 
         void ICollection<PoleZeroPair>.Add(PoleZeroPair item)
         {
