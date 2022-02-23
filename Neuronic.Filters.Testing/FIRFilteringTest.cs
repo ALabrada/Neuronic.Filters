@@ -32,14 +32,14 @@ namespace Neuronic.Filters.Testing
             for (int i = 3; i <= order; i++)
             {
                 var crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
+                Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
                 crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
+                Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
             }
             
             Assert.AreEqual(1, filteredCorrelation, 0.1);
             Assert.AreNotEqual(1, originalCorrelation, 0.1);
-            Assert.IsTrue(originalCorrelation < filteredCorrelation);
+            Assert.IsTrue(Math.Abs(originalCorrelation) < Math.Abs(filteredCorrelation));
         }
 
         [TestMethod]

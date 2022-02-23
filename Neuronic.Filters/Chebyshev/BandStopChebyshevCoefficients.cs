@@ -39,7 +39,7 @@ namespace Neuronic.Filters.Chebyshev
 
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandStopTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
 
             DigitalProto.SetLayout(coeffs);
 
@@ -83,7 +83,7 @@ namespace Neuronic.Filters.Chebyshev
 
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandStopTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
 
             DigitalProto.SetLayout(coeffs);
 

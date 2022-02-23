@@ -111,5 +111,28 @@ namespace Neuronic.Filters.Testing
             }
             Assert.IsTrue(peakSet.SetEquals(frequencies.Except(Enumerable.Repeat(frequencies[targetFrequency], 1))));
         }
+
+        [TestMethod]
+        public void TestBandStop2()
+        {
+            const int order = 2;
+            const double fs = 44100d;
+            const double cutoffFrequency = 2000;
+            const double br = 1720;
+            const double error = 1e-3;
+
+            var coeff = new BandStopButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
+            var chain = coeff.Calculate();
+
+            var expected = new[]
+            {
+                new Biquad(0.706107114808427,-1.39700513889419,0.706107114808427,1,-1.94471372803305,0.946480104381672),
+                new Biquad(1,-1.97846064654541,1.00000000000000,1,-1.34337999222135,0.528841024380834),
+            };
+
+            Assert.AreEqual(expected.Length, chain.Count);
+            for (int i = 0; i < expected.Length; i++)
+                Helpers.ValidateBiquad(expected[i], chain[i], error);
+        }
     }
 }

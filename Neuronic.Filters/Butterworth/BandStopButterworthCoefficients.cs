@@ -48,7 +48,7 @@ namespace Neuronic.Filters.Butterworth
 
             var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
             var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.BandStopTransform(center / SamplingFrequency, width / SamplingFrequency, DigitalProto, AnalogProto);
 
             DigitalProto.SetLayout(coeffs);
 

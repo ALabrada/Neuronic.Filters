@@ -81,7 +81,7 @@ namespace Neuronic.Filters.Chebyshev
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
             Calculate(coeffs);
-            return new DirectFormIBiquadChain(coeffs);
+            return new DirectFormIIBiquadChain(coeffs);
         }
     }
 }

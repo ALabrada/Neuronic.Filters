@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 
@@ -102,6 +103,7 @@ namespace Neuronic.Filters
         }
     }
 
+    [DebuggerDisplay("Poles: {Poles}\nZeros: {Zeros})")]
     struct PoleZeroPair
     {
         public PoleZeroPair(Complex pole, Complex zero) : this(pole, zero, Complex.Zero, Complex.Zero)
@@ -123,6 +125,7 @@ namespace Neuronic.Filters
         public bool IsSignlePole => Poles.Second.Equals(Complex.Zero) && Zeros.Second.Equals(Complex.Zero);
     }
 
+    [DebuggerDisplay("({First}, {Second})")]
     struct ComplexPair
     {
         public ComplexPair(Complex first, Complex second)

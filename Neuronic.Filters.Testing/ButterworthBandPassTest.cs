@@ -24,8 +24,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass08).Reverse().ToList();
-            var expectedGain = 6.541867072214145e-26;
+            var expected = Helpers.LoadScript(Resources.BandPass08).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -44,8 +43,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass12).Reverse().ToList();
-            var expectedGain = 2.883388964711794e-33;
+            var expected = Helpers.LoadScript(Resources.BandPass12).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -64,8 +62,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass16).Reverse().ToList();
-            var expectedGain = 7.114329431453330e-60;
+            var expected = Helpers.LoadScript(Resources.BandPass16).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -107,6 +104,29 @@ namespace Neuronic.Filters.Testing
                     Assert.AreEqual(frequencies[targetFrequency], peak);
                 }
             }
+        }
+
+        [TestMethod]
+        public void TestBandPass2()
+        {
+            const int order = 2;
+            const double fs = 44100d;
+            const double cutoffFrequency = 2000;
+            const double br = 1720;
+            const double error = 1e-3;
+
+            var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
+            var chain = coeff.Calculate();
+
+            var expected = new[]
+            {
+                new Biquad(0.0441616391702136,-0.0883232783404271,0.0441616391702136,1,-1.94471372803304,0.946480104381670),
+                new Biquad(1,2,1,1,-1.34337999222135,0.528841024380835), 
+            };
+
+            Assert.AreEqual(expected.Length, chain.Count);
+            for (int i = 0; i < expected.Length; i++)
+                Helpers.ValidateBiquad(expected[i], chain[i], error);
         }
     }
 }

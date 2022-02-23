@@ -27,12 +27,11 @@ namespace Neuronic.Filters.Testing
 
             var expected = new[]
             {
-                new Biquad(1, 2, 1, 1, -1.96762058043629, 0.97261960500367),
-                new Biquad(1, 2, 1, 1, -1.91907529383978, 0.92395098208778),
-                new Biquad(1, 2, 1, 1, -1.88350864178159, 0.88829396780773),
-                new Biquad(1, 2, 1, 1, -1.86480445083537, 0.86954225616013),
+                new Biquad(2.16573939147328e-12,4.33147878294656e-12,2.16573939147328e-12,1,-1.96760498595716,0.972608207502736),
+                new Biquad(1,2,1,1,-1.91904037532835,0.923920106890933),
+                new Biquad(1,2,1,1,-1.88346019867072,0.888249457039896),
+                new Biquad(1,2,1,1,-1.86474911008349,0.869490789938577),
             };
-            var expectedGain = 2.158589092625337e-12;
 
             Assert.AreEqual(expected.Length, chain.Count);
             for (int i = 0; i < expected.Length; i++)
@@ -50,8 +49,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.LowPass12).Reverse().ToList();
-            var expectedGain = 7.343036284781901e-10;
+            var expected = Helpers.LoadScript(Resources.LowPass12).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -69,7 +67,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.LowPass16).Reverse().ToList();
+            var expected = Helpers.LoadScript(Resources.LowPass16).ToList();
             var expectedGain = 3.444463173412853e-25;
 
             Assert.AreEqual(expected.Count, chain.Count);

@@ -91,12 +91,12 @@ namespace Neuronic.Filters
             digital.Clear();
 
             // prewarp
-            var f = Math.Tan(Math.PI * fc);
+            var f = 1.0 / Math.Tan(Math.PI * fc);
 
             Complex transform(Complex c)
             {
                 if (c.IsInfinity())
-                    return new Complex(-1, 0);
+                    return new Complex(1, 0);
 
                 // frequency transform
                 c = f * c;
@@ -297,9 +297,9 @@ namespace Neuronic.Filters
         public static void SetLayout(this Layout proto, IList<Biquad> stages)
         {
             var numPoles = proto.NumberOfPoles;
-            var m_numStages = (numPoles + 1) / 2;
+            var numStages = (numPoles + 1) / 2;
 
-            for (int i = 0; i < m_numStages; ++i)
+            for (int i = 0; i < numStages; ++i)
                 stages.Add(Biquad.FromPoleZeroPair(proto[i]));
 
             var scale = proto.NormalGain /

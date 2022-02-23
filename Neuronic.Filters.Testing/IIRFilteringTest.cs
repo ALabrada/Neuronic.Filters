@@ -20,14 +20,14 @@ namespace Neuronic.Filters.Testing
 
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
-            var chain = new DirectFormIBiquadChain(coeffs);
+            var chain = new DirectFormIIBiquadChain(coeffs);
             chain.Filter(samples, 0, samples, 0, samples.Length);
-            var filteredSignal = new Signal(samples, 0, samples.Length);
+            var filteredSignal = new Signal(samples, fs, samples.Length - 2 * fs);
 
             Array.Clear(samples, 0, samples.Length);
             foreach (var frequency in validFrequencies)
                 Helpers.GenerateSinusoid(frequency, fs, samples);
-            var expectedSignal = new Signal(samples);
+            var expectedSignal = new Signal(samples, fs, samples.Length - 2 * fs);
 
             var filteredCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, 0);
             var originalCorrelation = Signal.CrossCorrelation(originalSignal, filteredSignal, 0);
@@ -35,14 +35,14 @@ namespace Neuronic.Filters.Testing
             for (int i = 3; i <= order; i++)
             {
                 var crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
+                Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
                 crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
-                Assert.IsTrue(crossCorrelation < filteredCorrelation);
+                Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
             }
 
             Assert.AreEqual(1, filteredCorrelation, 0.1);
             Assert.AreNotEqual(1, originalCorrelation, 0.1);
-            Assert.IsTrue(originalCorrelation < filteredCorrelation);
+            Assert.IsTrue(Math.Abs(originalCorrelation) < Math.Abs(filteredCorrelation));
         }
 
         [TestMethod]
@@ -105,6 +105,27 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandStopButterworthCoefficients(order, fs, f1, f2);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+        [TestMethod]
+        public void TestAudixFilters()
+        {
+            const int order = 8;
+            const int fs = 32000;
+            const double f1 = 10d;
+            const double f2 = 3000d;
+            const int cycles = 10;
+
+            var samples = new float[cycles * fs];
+            for (int i = 0; i < samples.Length; i++)
+                samples[i] = 100;
+
+            var coeff = new BandPassButterworthCoefficients(order, fs, f1, f2);
+
+            var coeffs = new List<Biquad>();
+            var gain = coeff.Calculate(coeffs);
+            var chain = new DirectFormIBiquadChain(coeffs);
+            chain.Filter(samples, 0, samples, 0, samples.Length);
         }
     }
 }

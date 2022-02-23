@@ -23,8 +23,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass08).Reverse().ToList();
-            var expectedGain = 0.833143245502442;
+            var expected = Helpers.LoadScript(Resources.HighPass08).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -42,8 +41,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass12).Reverse().ToList();
-            var expectedGain = 0.992506754917111;
+            var expected = Helpers.LoadScript(Resources.HighPass12).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -61,8 +59,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass16).Reverse().ToList();
-            var expectedGain = 0.902520827102739;
+            var expected = Helpers.LoadScript(Resources.HighPass16).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -106,6 +103,27 @@ namespace Neuronic.Filters.Testing
                 }
             }
             Assert.IsTrue(peakSet.SetEquals(frequencies.Where(x => x > cutoffFrequency)));
+        }
+
+        [TestMethod]
+        public void TestHighPass2()
+        {
+            const int order = 2;
+            const double fs = 44100d;
+            const double cutoffFrequency = 2000d;
+            const double error = 1e-4;
+
+            var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
+            var chain = coeff.Calculate();
+
+            var expected = new[]
+            {
+                new Biquad(0.817365347198867,-1.63473069439773,0.817365347198867,1,-1.60109239418362,0.668368994611848),
+            };
+
+            Assert.AreEqual(expected.Length, chain.Count);
+            for (int i = 0; i < expected.Length; i++)
+                Helpers.ValidateBiquad(expected[i], chain[i], error);
         }
     }
 }
