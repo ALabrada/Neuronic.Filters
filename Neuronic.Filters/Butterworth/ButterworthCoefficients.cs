@@ -4,19 +4,20 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 
-namespace Neuronic.Filters.Butterwoth
+namespace Neuronic.Filters.Butterworth
 {
     /// <summary>
     /// Base class for the butterwoth filters.
     /// </summary>
-    public abstract class ButtersworthCoefficients : IBiquadCoefficients
+    public abstract class ButterworthCoefficients
+        : IBiquadCoefficients
     {
         /// <summary>
-        /// Creates a new instance of <see cref="ButtersworthCoefficients"/>.
+        /// Creates a new instance of <see cref="ButterworthCoefficients"/>.
         /// </summary>
         /// <param name="filterOrder">The order of the filter.</param>
         /// <param name="fs">The sampling frequency.</param>
-        protected ButtersworthCoefficients(int filterOrder, double fs)
+        protected ButterworthCoefficients(int filterOrder, double fs)
         {
             FilterOrder = filterOrder;
             SamplingFrequency = fs;
@@ -48,7 +49,6 @@ namespace Neuronic.Filters.Butterwoth
             var pairs = numPoles / 2;
             for (int i = 0; i < pairs; ++i)
             {
-                var pi2 = Math.PI / 2.0;
                 var c = Complex.FromPolarCoordinates(1.0, Math.PI / 2.0 + (2 * i + 1) * Math.PI / n2);
                 AnalogProto.AddPoleZeroConjugatePairs(c, Helpers.Infinity());
             }
@@ -71,8 +71,8 @@ namespace Neuronic.Filters.Butterwoth
         public BiquadChain Calculate()
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
-            var gain = Calculate(coeffs);
-            return new BiquadChain(coeffs, gain);
+            Calculate(coeffs);
+            return new DirectFormIBiquadChain(coeffs);
         }
     }
 }

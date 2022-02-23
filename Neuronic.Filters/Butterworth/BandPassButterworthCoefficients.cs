@@ -3,23 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace Neuronic.Filters.Butterwoth
+namespace Neuronic.Filters.Butterworth
 {
     /// <summary>
-    /// A band-stop butterworth filter.
+    /// A band-pass butterworth filter.
     /// </summary>
-    public class BandStopButtersworthCoefficients : ButtersworthCoefficients
+    public class BandPassButterworthCoefficients
+        : ButterworthCoefficients
+
     {
         private readonly double _f1, _f2;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="BandStopButtersworthCoefficients"/>.
+        /// Initializes a new instance of <see cref="BandPassButterworthCoefficients"/>.
         /// </summary>
         /// <param name="filterOrder">The order of the filter.</param>
         /// <param name="fs">The sampling frequency.</param>
         /// <param name="f1">The minor cut-off frequency.</param>
         /// <param name="f2">The major cut-off frequency.</param>
-        public BandStopButtersworthCoefficients(int filterOrder, double fs, double f1, double f2) : base(filterOrder, fs)
+        public BandPassButterworthCoefficients(int filterOrder, double fs, double f1, double f2) : base(filterOrder, fs)
         {
             if (f1 > f2)
             {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Neuronic.Filters.Butterwoth;
+using Neuronic.Filters.Butterworth;
 
 namespace Neuronic.Filters.Shell
 {
@@ -34,11 +34,11 @@ namespace Neuronic.Filters.Shell
                 GenerateNoise(noiseAmp, samples);
 
             Console.WriteLine("Designing filters...");
-            var lowPass = new LowPassButtersworthCoefficients(5, fs, highCut).Calculate();
+            var lowPass = new LowPassButterworthCoefficients(5, fs, highCut).Calculate();
             Console.WriteLine("Low pass filter:");
             foreach (var biquad in lowPass)
                 Console.WriteLine(biquad);
-            var highPass = new HighPassButtersworthCoefficients(3, fs, highCut).Calculate();
+            var highPass = new HighPassButterworthCoefficients(3, fs, highCut).Calculate();
             Console.WriteLine("High pass filter:");
             foreach (var biquad in highPass)
                 Console.WriteLine(biquad);

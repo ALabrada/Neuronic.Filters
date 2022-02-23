@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neuronic.Filters.Butterwoth;
+using Neuronic.Filters.Butterworth;
 using Neuronic.Filters.FIR;
 
 namespace Neuronic.Filters.Testing

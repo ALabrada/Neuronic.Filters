@@ -22,7 +22,7 @@
 
   <PropertyGroup>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\netstandard1.1\Neuronic.Filters.xml</DocumentationFile>
+    <DocumentationFile>bin\$(Configuration)\Neuronic.Filters.xml</DocumentationFile>
     <PackageLicenseUrl>https://github.com/ALabrada/Neuronic.Filters/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/ALabrada/Neuronic.Filters</PackageProjectUrl>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>

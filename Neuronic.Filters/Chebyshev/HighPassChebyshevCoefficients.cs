@@ -2,9 +2,33 @@
 
 namespace Neuronic.Filters.Chebyshev
 {
-    public class HighPassChebyshevCoefficients : ChebyshevCoefficients
+    public class HighPassChebyshevICoefficients : ChebyshevICoefficients
     {
-        public HighPassChebyshevCoefficients(int filterOrder, double fs, double cutoffFrequency) : base(filterOrder, fs)
+        public HighPassChebyshevICoefficients(int filterOrder, double fs, double cutoffFrequency, double rippleDb) : base(filterOrder, fs, rippleDb)
+        {
+            CutoffFrequency = cutoffFrequency;
+        }
+
+        /// <summary>
+        /// The cut-off frequency.
+        /// </summary>
+        public double CutoffFrequency { get; }
+
+        public override double Calculate(IList<Biquad> coeffs)
+        {
+            AnalogDesign();
+
+            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
+
+            DigitalProto.SetLayout(coeffs);
+
+            return 1d;
+        }
+    }
+
+    public class HighPassChebyshevIICoefficients : ChebyshevIICoefficients
+    {
+        public HighPassChebyshevIICoefficients(int filterOrder, double fs, double cutoffFrequency, double stopBandDb) : base(filterOrder, fs, stopBandDb)
         {
             CutoffFrequency = cutoffFrequency;
         }

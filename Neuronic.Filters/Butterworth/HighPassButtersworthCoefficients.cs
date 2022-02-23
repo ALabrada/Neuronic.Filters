@@ -1,23 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
-namespace Neuronic.Filters.Butterwoth
+namespace Neuronic.Filters.Butterworth
 {
     /// <summary>
-    /// A low-pass butterworth filter.
+    /// A high-pass butterworth filter.
     /// </summary>
-    public class LowPassButtersworthCoefficients : ButtersworthCoefficients
+    public class HighPassButterworthCoefficients : ButterworthCoefficients
     {
         private readonly double _freq;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="LowPassButtersworthCoefficients"/>.
+        /// Initializes a new instance of <see cref="HighPassButterworthCoefficients"/>.
         /// </summary>
         /// <param name="filterOrder">The order of the filter.</param>
         /// <param name="fs">The sampling frequency.</param>
         /// <param name="cutoffFrequency">The cut-off frequency.</param>
-        public LowPassButtersworthCoefficients(int filterOrder, double fs, double cutoffFrequency) : base(filterOrder, fs)
+        public HighPassButterworthCoefficients(int filterOrder, double fs, double cutoffFrequency) : base(filterOrder, fs)
         {
             CutoffFrequency = cutoffFrequency;
             _freq = 2 * Math.Tan(Math.PI * cutoffFrequency / fs);
@@ -32,7 +33,7 @@ namespace Neuronic.Filters.Butterwoth
         {
             AnalogDesign();
 
-            Helpers.LowPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
+            Helpers.HighPassTransform(CutoffFrequency / SamplingFrequency, DigitalProto, AnalogProto);
 
             DigitalProto.SetLayout(coeffs);
 

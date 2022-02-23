@@ -5,12 +5,13 @@ using System.Text;
 
 namespace Neuronic.Filters.Chebyshev
 {
-    public abstract class ChebyshevCoefficients : IBiquadCoefficients
+    public abstract class ChebyshevICoefficients : IBiquadCoefficients
     {
-        protected ChebyshevCoefficients(int filterOrder, double fs)
+        protected ChebyshevICoefficients(int filterOrder, double fs, double rippleDb)
         {
             FilterOrder = filterOrder;
             SamplingFrequency = fs;
+            RippleDb = rippleDb;
 
             AnalogProto = new Layout(FilterOrder);
             DigitalProto = new Layout(FilterOrder);
@@ -79,8 +80,8 @@ namespace Neuronic.Filters.Chebyshev
         public virtual BiquadChain Calculate()
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
-            var gain = Calculate(coeffs);
-            return new BiquadChain(coeffs, gain);
+            Calculate(coeffs);
+            return new DirectFormIBiquadChain(coeffs);
         }
     }
 }

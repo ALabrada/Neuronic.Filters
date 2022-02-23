@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neuronic.Filters.Butterwoth;
+using Neuronic.Filters.Butterworth;
 using Neuronic.Filters.FIR;
 
 namespace Neuronic.Filters.Testing
@@ -20,7 +20,7 @@ namespace Neuronic.Filters.Testing
 
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
-            var chain = new BiquadChain(coeffs, gain);
+            var chain = new DirectFormIBiquadChain(coeffs);
             chain.Filter(samples, 0, samples, 0, samples.Length);
             var filteredSignal = new Signal(samples, 0, samples.Length);
 
@@ -55,7 +55,7 @@ namespace Neuronic.Filters.Testing
             double[] frequencies = { 770, 5830 };
             var validFrequencies = frequencies.TakeWhile(f => f < cutoffFrequency);
 
-            var coeff = new LowPassButtersworthCoefficients(order, fs, cutoffFrequency);
+            var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
         }
@@ -70,7 +70,7 @@ namespace Neuronic.Filters.Testing
             double[] frequencies = { 330, 1870 };
             var validFrequencies = frequencies.SkipWhile(f => f < cutoffFrequency);
 
-            var coeff = new HighPassButtersworthCoefficients(order, fs, cutoffFrequency);
+            var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
         }
@@ -86,7 +86,7 @@ namespace Neuronic.Filters.Testing
             double[] frequencies = { 330, 1870, 9790 };
             var validFrequencies = frequencies.SkipWhile(f => f < f1).TakeWhile(f => f < f2);
 
-            var coeff = new BandPassButtersworthCoefficients(order, fs, f1, f2);
+            var coeff = new BandPassButterworthCoefficients(order, fs, f1, f2);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
         }
@@ -102,7 +102,7 @@ namespace Neuronic.Filters.Testing
             double[] frequencies = { 330, 770, 1870, 5830, 9790 };
             var validFrequencies = frequencies.TakeWhile(f => f < f1).Concat(frequencies.SkipWhile(f => f < f2));
 
-            var coeff = new BandStopButtersworthCoefficients(order, fs, f1, f2);
+            var coeff = new BandStopButterworthCoefficients(order, fs, f1, f2);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
         }
