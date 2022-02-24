@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="ButterworthHighPassTest.cs" />
     <Compile Include="ButterworthLowPassTest.cs" />
+    <Compile Include="ChebyshevIIHighPassTest.cs" />
     <Compile Include="ChebyshevIILowPassTest.cs" />
     <Compile Include="ErrorComparer.cs" />
     <Compile Include="FrequencySpectrum.cs" />
