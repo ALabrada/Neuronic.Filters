@@ -36,7 +36,7 @@ namespace Neuronic.Filters.Chebyshev
 
             AnalogProto.Clear();
 
-            var eps = Math.Sqrt(1.0 / (Math.Exp(-stopBandDb * 0.1 * Helpers.Ln10) - 1));
+            var eps = Math.Sqrt(1.0 / (Math.Exp(stopBandDb * 0.1 * Helpers.Ln10) - 1));
             var v0 = Helpers.Asinh(1 / eps) / numPoles;
             var sinh_v0 = -Math.Sinh(v0);
             var cosh_v0 = Math.Cosh(v0);
@@ -51,7 +51,7 @@ namespace Neuronic.Filters.Chebyshev
                 var im = 1 / Math.Cos(k * fn);
 
                 AnalogProto.AddPoleZeroConjugatePairs(
-                    new Complex(a / d2, b / d2), 
+                    new Complex(a / d2, b / d2),
                     new Complex(0, im));
             }
 
@@ -71,7 +71,7 @@ namespace Neuronic.Filters.Chebyshev
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
             var gain = Calculate(coeffs);
-            return new DirectFormIIBiquadChain(coeffs, gain);
+            return new TransposedDirectFormIIBiquadChain(coeffs, gain);
         }
     }
 }

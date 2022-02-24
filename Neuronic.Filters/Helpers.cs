@@ -292,14 +292,14 @@ namespace Neuronic.Filters
                 digital.NormalW = 0;
             digital.NormalGain = analog.NormalGain;
         }
-        
+
         public static double SetLayout(this Layout proto, IList<Biquad> stages)
         {
             var numPoles = proto.NumberOfPoles;
             var numStages = (numPoles + 1) / 2;
 
             for (int i = 0; i < numStages; ++i)
-                stages.Add(Biquad.FromPoleZeroPair(proto[i]));
+                stages.Insert(0, Biquad.FromPoleZeroPair(proto[i]));
 
             return proto.NormalGain /
                 stages.GetResponse(proto.NormalW / (2 * Math.PI)).Magnitude;

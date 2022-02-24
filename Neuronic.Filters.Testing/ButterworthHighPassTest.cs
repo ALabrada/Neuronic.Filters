@@ -23,7 +23,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass08).ToList();
+            var expected = Helpers.LoadCsv(Resources.HighPass08).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -41,7 +41,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass12).ToList();
+            var expected = Helpers.LoadCsv(Resources.HighPass12).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -59,7 +59,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.HighPass16).ToList();
+            var expected = Helpers.LoadCsv(Resources.HighPass16).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)

@@ -28,6 +28,17 @@ namespace Neuronic.Filters.Testing
             }
         }
 
+        internal static IEnumerable<Biquad> LoadCsv(string csv)
+        {
+            foreach (var line in csv.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var values = new List<double>(6);
+                values.AddRange(line.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => double.Parse(s, NumberStyles.Any, CultureInfo.InvariantCulture)));
+                yield return new Biquad(values[0], values[1], values[2], values[3], values[4], values[5]);
+            }
+        }
+
         internal static void GenerateSinusoid(double frequency, double fs, double[] samples)
         {
             var theta = 2 * Math.PI * frequency / fs;

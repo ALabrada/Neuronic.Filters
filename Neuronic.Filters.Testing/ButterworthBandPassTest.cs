@@ -24,7 +24,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass08).ToList();
+            var expected = Helpers.LoadCsv(Resources.BandPass08).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -43,7 +43,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass12).ToList();
+            var expected = Helpers.LoadCsv(Resources.BandPass12).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -62,7 +62,7 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandPassButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
-            var expected = Helpers.LoadScript(Resources.BandPass16).ToList();
+            var expected = Helpers.LoadCsv(Resources.BandPass16).ToList();
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)

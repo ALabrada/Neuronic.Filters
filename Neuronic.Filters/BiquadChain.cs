@@ -368,10 +368,11 @@ namespace Neuronic.Filters
         private readonly State[] _states;
         private double _ac;
 
-        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, gain)
+        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
         {
             _states = new State[Count];
             _ac = ac;
+            Stages.Scale(gain);
         }
 
         public override void Reset()
@@ -430,6 +431,158 @@ namespace Neuronic.Filters
 
                 _v2 = _v1;
                 _v1 = w;
+
+                return output;
+            }
+        }
+    }
+
+    public class TransposedDirectFormIBiquadChain : BiquadChain
+    {
+        private readonly State[] _states;
+
+        public TransposedDirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, 1.0)
+        {
+            _states = new State[Count];
+            Stages.Scale(gain);
+        }
+
+        public override void Reset()
+        {
+            Array.Clear(_states, 0, Count);
+        }
+
+        private unsafe double FilterSample(double input, State* state, Biquad* stage)
+        {
+            var result = input * Gain;
+            result = state[0].Process(result, stage[0]);
+            for (int i = 1; i < Count; i++)
+                result = state[i].Process(result, stage[i]);
+            return result;
+        }
+
+        public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
+        {
+            fixed (Biquad* stage = Stages)
+            fixed (State* state = _states)
+            {
+                for (int n = 0; n < count; n++)
+                {
+                    *output = (float)FilterSample(*input, state, stage);
+
+                    input += stride;
+                    output += stride;
+                }
+            }
+        }
+
+        public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
+        {
+            fixed (Biquad* stage = Stages)
+            fixed (State* state = _states)
+            {
+                for (int n = 0; n < count; n++)
+                {
+                    *output = FilterSample(*input, state, stage);
+
+                    input += stride;
+                    output += stride;
+                }
+            }
+        }
+
+        struct State
+        {
+            private double _v, _s1, _s1_1, _s2, _s2_1, _s3, _s3_1, _s4, _s4_1;
+
+            public double Process(double x, Biquad s)
+            {
+                // can be: in += m_s1_1;
+                _v = x +_s1_1;
+                var output = s.B0 * _v + _s3_1;
+                _s1 = _s2_1 - s.A1 * _v;
+                _s2 = -s.A2 * _v;
+                _s3 = s.B1 * _v + _s4_1;
+                _s4 = s.B2 * _v;
+
+                _s4_1 = _s4;
+                _s3_1 = _s3;
+                _s2_1 = _s2;
+                _s1_1 = _s1;
+
+                return output;
+            }
+        }
+    }
+
+    public class TransposedDirectFormIIBiquadChain : BiquadChain
+    {
+        private readonly State[] _states;
+        private double _ac;
+
+        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
+        {
+            _states = new State[Count];
+            _ac = ac;
+            Stages.Scale(gain);
+        }
+
+        public override void Reset()
+        {
+            Array.Clear(_states, 0, Count);
+        }
+
+        private unsafe double FilterSample(double input, State* state, Biquad* stage)
+        {
+            var result = input * Gain;
+            var ac = (_ac *= -1);
+            result = state[0].Process(result, stage[0], ac);
+            for (int i = 1; i < Count; i++)
+                result = state[i].Process(result, stage[i]);
+            return result;
+        }
+
+        public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
+        {
+            fixed (Biquad* stage = Stages)
+            fixed (State* state = _states)
+            {
+                for (int n = 0; n < count; n++)
+                {
+                    *output = (float)FilterSample(*input, state, stage);
+
+                    input += stride;
+                    output += stride;
+                }
+            }
+        }
+
+        public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
+        {
+            fixed (Biquad* stage = Stages)
+            fixed (State* state = _states)
+            {
+                for (int n = 0; n < count; n++)
+                {
+                    *output = FilterSample(*input, state, stage);
+
+                    input += stride;
+                    output += stride;
+                }
+            }
+        }
+
+        struct State
+        {
+            private double _s1, _s1_1, _s2, _s2_1;
+
+            public double Process(double x, Biquad s, double epsilon = 0d)
+            {
+                var output = _s1_1 + s.B0 * x + epsilon;
+                _s1 = _s2_1 + s.B1 * x - s.A1 * output;
+                _s2 = s.B2 * x - s.A2 * output;
+                _s1_1 = _s1;
+                _s2_1 = _s2;
 
                 return output;
             }
