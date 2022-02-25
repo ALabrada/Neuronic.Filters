@@ -90,8 +90,9 @@ namespace Neuronic.Filters.Testing
                 Helpers.GenerateSinusoid(frequency, fs, signal);
             var im = new double[signal.Length];
 
-            var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
-            var chain = coeff.Calculate();
+            var coeff = new List<Biquad>();
+            var gain = new LowPassButterworthCoefficients(order, fs, cutoffFrequency).Calculate(coeff);
+            var chain = new TransposedDirectFormIIBiquadChain(coeff, gain);
             chain.Filter(signal, 0, signal, 0, signal.Length);
 
             var count = signal.Length / 2;
@@ -101,7 +102,7 @@ namespace Neuronic.Filters.Testing
             var maxEnergy = signal.Take(count).Max();
             var step = fs / (2d * count);
             var peakSet = new HashSet<double>();
-            for (int i = 1; i < count - 1; i++)
+            for (int i = 2; i < count - 1; i++)
             {
                 var freq = i * step;
                 if (signal[i] > signal[i - 1] && signal[i] > signal[i + 1] && signal[i] >= 0.001 * maxEnergy)

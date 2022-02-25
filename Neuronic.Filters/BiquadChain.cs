@@ -520,7 +520,7 @@ namespace Neuronic.Filters
         private readonly State[] _states;
         private double _ac;
 
-        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
+        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 0.0) : base(coefficients, 1.0)
         {
             _states = new State[Count];
             _ac = ac;
