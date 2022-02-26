@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 namespace Neuronic.Filters
 {
@@ -285,6 +286,11 @@ namespace Neuronic.Filters
         /// <returns>The element at the specified index in the read-only list.</returns>
         /// <param name="index">The zero-based index of the element to get. </param>
         public Biquad this[int index] => Stages[index];
+
+        public Complex GetResponse(double normalizedFrequency)
+        {
+            return Stages.GetResponse(normalizedFrequency);
+        }
     }
 
     public class DirectFormIBiquadChain : BiquadChain

@@ -23,7 +23,7 @@ namespace Neuronic.Filters
             return new Complex(c.Real + v * c1.Real, c.Imaginary + v * c1.Imaginary);
         }
 
-        public static Complex GetResponse(this IList<Biquad> stages, double normalizedFrequency)
+        public static Complex GetResponse(this IEnumerable<Biquad> stages, double normalizedFrequency)
         {
             double w = 2 * Math.PI * normalizedFrequency;
 

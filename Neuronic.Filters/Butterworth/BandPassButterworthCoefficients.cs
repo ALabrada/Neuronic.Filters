@@ -40,17 +40,21 @@ namespace Neuronic.Filters.Butterworth
         /// </summary>
         public double SecondCutoffFrequency { get; }
 
-        public override double Calculate(IList<Biquad> coeffs)
+        /// <inheritdoc />
+        protected override int NumFilters => FilterOrder;
+
+        /// <inheritdoc />
+        protected override double ConvertPoles()
         {
-            AnalogDesign();
+            var f1 = 2 * Math.Tan(Math.PI * FirstCutoffFrequency / SamplingFrequency);
+            var f2 = 2 * Math.Tan(Math.PI * SecondCutoffFrequency / SamplingFrequency);
+            return ConvertBandPass(f1, f2, Poles, Zeros);
+        }
 
-            var digitalProto = new Layout(AnalogProto.Count * 2);
-
-            var center = (FirstCutoffFrequency + SecondCutoffFrequency) / 2;
-            var width = Math.Abs(FirstCutoffFrequency - center);
-            Helpers.BandPassTransform(center / SamplingFrequency, width / SamplingFrequency, digitalProto, AnalogProto);
-
-            return digitalProto.SetLayout(coeffs);
+        /// <inheritdoc />
+        protected override void CorrectOverallGain(double gain, double preBLTgain, double[] ba)
+        {
+            ba[0] = preBLTgain * (preBLTgain / gain);
         }
     }
 }

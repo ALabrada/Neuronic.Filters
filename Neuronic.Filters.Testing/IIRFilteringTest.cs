@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Neuronic.Filters.Butterworth;
+using Neuronic.Filters.Chebyshev;
 using Neuronic.Filters.FIR;
 
 namespace Neuronic.Filters.Testing
@@ -94,7 +95,7 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestBandStopButtersworthFiltering()
         {
-            const int order = 32;
+            const int order = 64;
             const int fs = 44100;
             const double f1 = 500d;
             const double f2 = 8000d;
@@ -103,6 +104,68 @@ namespace Neuronic.Filters.Testing
             var validFrequencies = frequencies.TakeWhile(f => f < f1).Concat(frequencies.SkipWhile(f => f < f2));
 
             var coeff = new BandStopButterworthCoefficients(order, fs, f1, f2);
+
+            TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+        [TestMethod]
+        public void TestLowPassChebyshevIIFiltering()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double cutoffFrequency = 2000d;
+            const int cycles = 10;
+            double[] frequencies = { 770, 5830 };
+            var validFrequencies = frequencies.TakeWhile(f => f < cutoffFrequency);
+
+            var coeff = new LowPassChebyshevIICoefficients(order, fs, cutoffFrequency, 48);
+
+            TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+        [TestMethod]
+        public void TestHighPassChebyshevIIFiltering()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double cutoffFrequency = 1000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 1870 };
+            var validFrequencies = frequencies.SkipWhile(f => f < cutoffFrequency);
+
+            var coeff = new HighPassChebyshevIICoefficients(order, fs, cutoffFrequency, 48);
+
+            TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+        [TestMethod]
+        public void TestBandPassChebyshevIIFiltering()
+        {
+            const int order = 32;
+            const int fs = 44100;
+            const double f1 = 1000d;
+            const double f2 = 4000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 1870, 9790 };
+            var validFrequencies = frequencies.SkipWhile(f => f < f1).TakeWhile(f => f < f2);
+
+            var coeff = new BandPassChebyshevIICoefficients(order, fs, f1, f2, 48);
+
+            TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+        [TestMethod]
+        public void TestBandStopChebyshevIIFiltering()
+        {
+            const int order = 64;
+            const int fs = 44100;
+            const double f1 = 500d;
+            const double f2 = 8000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 770, 1870, 5830, 9790 };
+            var validFrequencies = frequencies.TakeWhile(f => f < f1).Concat(frequencies.SkipWhile(f => f < f2));
+
+            var coeff = new BandStopChebyshevIICoefficients(order, fs, f1, f2, 48);
 
             TestFilter(order, fs, cycles, coeff, frequencies, validFrequencies);
         }
