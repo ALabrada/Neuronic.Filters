@@ -1,4 +1,3 @@
-using Neuronic.Filters.IIR;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

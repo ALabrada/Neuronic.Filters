@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 
-namespace Neuronic.Filters
+namespace Neuronic.Filters.Chebyshev
 {
     class Layout : IList<PoleZeroPair>
     {
