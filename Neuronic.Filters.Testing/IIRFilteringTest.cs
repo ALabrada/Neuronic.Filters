@@ -21,7 +21,7 @@ namespace Neuronic.Filters.Testing
 
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
-            var chain = new DirectFormIIBiquadChain(coeffs, gain);
+            var chain = new TransposedDirectFormIIBiquadChain(coeffs, gain);
             chain.Filter(samples, 0, samples, 0, samples.Length);
             var filteredSignal = new Signal(samples, fs, samples.Length - 2 * fs);
 
@@ -79,7 +79,7 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestBandPassButtersworthFiltering()
         {
-            const int order = 32;
+            const int order = 16;
             const int fs = 44100;
             const double f1 = 1000d;
             const double f2 = 4000d;
@@ -95,7 +95,7 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestBandStopButtersworthFiltering()
         {
-            const int order = 64;
+            const int order = 16;
             const int fs = 44100;
             const double f1 = 500d;
             const double f2 = 8000d;
@@ -141,7 +141,7 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestBandPassChebyshevIIFiltering()
         {
-            const int order = 32;
+            const int order = 16;
             const int fs = 44100;
             const double f1 = 1000d;
             const double f2 = 4000d;
@@ -157,7 +157,7 @@ namespace Neuronic.Filters.Testing
         [TestMethod]
         public void TestBandStopChebyshevIIFiltering()
         {
-            const int order = 64;
+            const int order = 16;
             const int fs = 44100;
             const double f1 = 500d;
             const double f2 = 8000d;

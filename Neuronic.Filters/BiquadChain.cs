@@ -18,6 +18,7 @@ namespace Neuronic.Filters
 #endif
     {
         private readonly Biquad[] _coeffs;
+        private readonly double[] _transients;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BiquadChain"/> class.
@@ -26,6 +27,7 @@ namespace Neuronic.Filters
         /// <param name="gain">The overall gain of the filter.</param>
         protected BiquadChain(IList<Biquad> coefficients, double gain)
         {
+            _transients = new double[coefficients.Count * 6];
             _coeffs = new Biquad[coefficients.Count];
             coefficients.CopyTo(_coeffs, 0);
             Gain = gain;
@@ -40,6 +42,32 @@ namespace Neuronic.Filters
         /// Reset's the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
         /// </summary>
         public abstract void Reset();
+
+        private unsafe int ReadTransients(int count, double* tranPtr, float* inputPtr)
+        {
+            var nfact = Math.Min(_transients.Length / 2, count);
+            var current = tranPtr;
+            var f = 2 * inputPtr[0];
+            for (int i = nfact; i > 0; i--, current++)
+                *current = f - inputPtr[i];
+            f = 2 * inputPtr[count - 1];
+            for (int i = count - nfact - 1; i < count - 1; i++, current++)
+                *current = f - inputPtr[i];
+            return nfact;
+        }
+
+        private unsafe int ReadTransients(int count, double* tranPtr, double* inputPtr)
+        {
+            var nfact = Math.Min(_transients.Length / 2, count);
+            var current = tranPtr;
+            var f = 2 * inputPtr[0];
+            for (int i = nfact; i > 0; i--, current++)
+                *current = f - inputPtr[i];
+            f = 2 * inputPtr[count - 1];
+            for (int i = count - nfact - 1; i < count - 1; i++, current++)
+                *current = f - inputPtr[i];
+            return nfact;
+        }
 
         /// <summary>
         /// Executes one sweep of the filter.
@@ -73,11 +101,21 @@ namespace Neuronic.Filters
                 throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
             if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (float* inputPtr = input, outputPtr = output)
+            fixed (double* tranPtr = _transients)
             {
+                var nfact = ReadTransients(count, tranPtr, inputPtr);
+
+                // Init state
+                Reset();
+                FilterOnce(tranPtr, tranPtr, nfact, 1);
+                // Filter forward
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
+
+                // Init state
                 Reset();
+                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                // Filter back
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
-                Reset();
             }
 
             return count;
@@ -140,11 +178,21 @@ namespace Neuronic.Filters
                 throw new ArgumentOutOfRangeException(nameof(count), "There is not enough space in the arrays");
             if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (double* inputPtr = input, outputPtr = output)
+            fixed (double* tranPtr = _transients)
             {
+                var nfact = ReadTransients(count, tranPtr, inputPtr);
+
+                // Init state
+                Reset();
+                FilterOnce(tranPtr, tranPtr, nfact, 1);
+                // Filter forward
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
+
+                // Init state
                 Reset();
+                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                // Filter back
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
-                Reset();
             }
 
             return count;
@@ -191,11 +239,21 @@ namespace Neuronic.Filters
             if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
             if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (float* inputPtr = input, outputPtr = output)
+            fixed (double* tranPtr = _transients)
             {
+                var nfact = ReadTransients(count, tranPtr, inputPtr);
+
+                // Init state
+                Reset();
+                FilterOnce(tranPtr, tranPtr, nfact, 1);
+                // Filter forward
                 FilterOnce(inputPtr, outputPtr, count, stride);
+
+                // Init state
                 Reset();
+                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                // Filter back
                 FilterOnce(outputPtr + count - 1, outputPtr + count - 1, count, -stride);
-                Reset();
             }
 
             return count;
@@ -235,11 +293,21 @@ namespace Neuronic.Filters
             if (count <= 0 || input.Length < count || output.Length < count) throw new ArgumentOutOfRangeException(nameof(count));
             if (stride <= 0) throw new ArgumentOutOfRangeException(nameof(stride));
             fixed (double* inputPtr = input, outputPtr = output)
+            fixed (double* tranPtr = _transients)
             {
+                var nfact = ReadTransients(count, tranPtr, inputPtr);
+
+                // Init state
+                Reset();
+                FilterOnce(tranPtr, tranPtr, nfact, 1);
+                // Filter forward
                 FilterOnce(inputPtr, outputPtr, count, stride);
+
+                // Init state
                 Reset();
+                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                // Filter back
                 FilterOnce(outputPtr + count - 1, outputPtr + count - 1, count, -stride);
-                Reset();
             }
 
             return count;
