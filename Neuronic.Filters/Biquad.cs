@@ -1,4 +1,4 @@
-﻿using Neuronic.Filters.Chebyshev;
+﻿using Neuronic.Filters.IIR;
 using System.Numerics;
 
 namespace Neuronic.Filters
@@ -55,7 +55,7 @@ namespace Neuronic.Filters
 
         public static readonly Biquad Identity = new Biquad(1, 0, 0, 1, 0, 0);
 
-        internal static Biquad FromPoleZeroPair(Chebyshev.PoleZeroPair pair)
+        internal static Biquad FromPoleZeroPair(IIR.PoleZeroPair pair)
         {
             if (pair.IsSignlePole)
                 return FromPole(pair.Poles.First, pair.Zeros.First);

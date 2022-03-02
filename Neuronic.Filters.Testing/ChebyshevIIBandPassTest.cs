@@ -3,7 +3,7 @@ using System.Linq;
 using Accord.Math;
 using Accord.Math.Transforms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neuronic.Filters.Chebyshev;
+using Neuronic.Filters.IIR;
 
 namespace Neuronic.Filters.Testing
 {

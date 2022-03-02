@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace Neuronic.Filters.Butterworth
+namespace Neuronic.Filters.IIR
 {
     /// <summary>
     /// A high-pass butterworth filter.

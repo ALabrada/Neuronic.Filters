@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace Neuronic.Filters.Chebyshev
+namespace Neuronic.Filters.IIR
 {
     public abstract class ChebyshevIICoefficients : IBiquadCoefficients
     {

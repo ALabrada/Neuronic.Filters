@@ -1,4 +1,4 @@
-﻿using Neuronic.Filters.Chebyshev;
+﻿using Neuronic.Filters.IIR;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

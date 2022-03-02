@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Neuronic.Filters.Chebyshev
+namespace Neuronic.Filters.IIR
 {
     public class BandStopChebyshevICoefficients : ChebyshevICoefficients
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using Accord.Math;
 using Accord.Math.Transforms;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neuronic.Filters.Butterworth;
+using Neuronic.Filters.IIR;
 using Neuronic.Filters.Testing.Properties;
 
 namespace Neuronic.Filters.Testing

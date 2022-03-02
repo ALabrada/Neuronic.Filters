@@ -1,5 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Neuronic.Filters.Chebyshev;
+using Neuronic.Filters.IIR;
 using System.Linq;
 
 namespace Neuronic.Filters.Testing
