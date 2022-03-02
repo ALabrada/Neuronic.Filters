@@ -1,21 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Neuronic.Filters.IIR
 {
-    public class NotchCoefficients : IBiquadCoefficients
+    public class PeakCoefficients : IBiquadCoefficients
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="NotchCoefficients"/> class.
         /// </summary>
         /// <param name="fs">The sampling frequency.</param>
-        /// <param name="cutoffFrequency">The cutoff frequency.</param>
+        /// <param name="peakFrequency">The peak frequency.</param>
         /// <param name="quality">The quality.</param>
-        public NotchCoefficients(double fs, double cutoffFrequency, double quality)
+        public PeakCoefficients(double fs, double peakFrequency, double quality)
         {
             SamplingFrequency = fs;
-            CutoffFrequency = cutoffFrequency;
+            PeakFrequency = peakFrequency;
             Quality = quality;
         }
 
@@ -28,7 +27,7 @@ namespace Neuronic.Filters.IIR
         /// <summary>
         /// The cut-off frequency.
         /// </summary>
-        public double CutoffFrequency { get; }
+        public double PeakFrequency { get; }
 
         /// <summary>
         /// Gets the quality.
@@ -44,19 +43,19 @@ namespace Neuronic.Filters.IIR
         /// </returns>
         public double Calculate(IList<Biquad> coeffs)
         {
-            var w0 = 2 * CutoffFrequency / SamplingFrequency;
+            var w0 = 2 * PeakFrequency / SamplingFrequency;
             var bw = w0 / Quality;
 
             bw *= Math.PI;
             w0 *= Math.PI;
 
             var gb = 1 / Math.Sqrt(2);
-            var beta = (Math.Sqrt(1.0 - gb * gb) / gb) * Math.Tan(bw / 2.0);
+            var beta = (gb / Math.Sqrt(1.0 - gb * gb)) * Math.Tan(bw / 2.0);
             var gain = 1.0 / (1.0 + beta);
 
-            coeffs.Add(new Biquad(1, -2.0 * Math.Cos(w0), 1, 1, -2.0 * gain * Math.Cos(w0), 2.0 * gain - 1.0));
+            coeffs.Add(new Biquad(1, 0, -1, 1, -2.0 * gain * Math.Cos(w0), 2.0 * gain - 1.0));
 
-            return 1d;
+            return 1.0 - gain;
         }
 
         /// <summary>
