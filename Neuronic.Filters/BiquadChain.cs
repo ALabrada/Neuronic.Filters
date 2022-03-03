@@ -43,10 +43,18 @@ namespace Neuronic.Filters
         /// </summary>
         public abstract void Reset();
 
-        private unsafe int ReadTransients(int count, double* tranPtr, float* inputPtr)
+        /// <summary>
+        /// Reads the samples used as signal padding.
+        /// </summary>
+        /// <param name="inputPtr">The input pointer.</param>
+        /// <param name="count">The signal length.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <param name="outputPtr">The output pointer.</param>
+        /// <returns>The amount of padded samples on each side.</returns>
+        protected virtual unsafe int ReadTransients(float* inputPtr, int count, int stride, double* outputPtr)
         {
             var nfact = Math.Min(_transients.Length / 2, count);
-            var current = tranPtr;
+            var current = outputPtr;
             var f = 2 * inputPtr[0];
             for (int i = nfact; i > 0; i--, current++)
                 *current = f - inputPtr[i];
@@ -56,16 +64,24 @@ namespace Neuronic.Filters
             return nfact;
         }
 
-        private unsafe int ReadTransients(int count, double* tranPtr, double* inputPtr)
+        /// <summary>
+        /// Reads the samples used as signal padding.
+        /// </summary>
+        /// <param name="inputPtr">The input pointer.</param>
+        /// <param name="count">The signal length.</param>
+        /// <param name="stride">The length of the processing step. Can be used to bypass samples.</param>
+        /// <param name="outputPtr">The output pointer.</param>
+        /// <returns>The amount of padded samples on each side.</returns>
+        protected virtual unsafe int ReadTransients(double* inputPtr, int count, int stride, double* outputPtr)
         {
             var nfact = Math.Min(_transients.Length / 2, count);
-            var current = tranPtr;
+            var current = outputPtr;
             var f = 2 * inputPtr[0];
             for (int i = nfact; i > 0; i--, current++)
-                *current = f - inputPtr[i];
+                *current = f - inputPtr[i * stride];
             f = 2 * inputPtr[count - 1];
             for (int i = count - nfact - 1; i < count - 1; i++, current++)
-                *current = f - inputPtr[i];
+                *current = f - inputPtr[i * stride];
             return nfact;
         }
 
@@ -103,7 +119,7 @@ namespace Neuronic.Filters
             fixed (float* inputPtr = input, outputPtr = output)
             fixed (double* tranPtr = _transients)
             {
-                var nfact = ReadTransients(count, tranPtr, inputPtr);
+                var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
                 Reset();
@@ -180,7 +196,7 @@ namespace Neuronic.Filters
             fixed (double* inputPtr = input, outputPtr = output)
             fixed (double* tranPtr = _transients)
             {
-                var nfact = ReadTransients(count, tranPtr, inputPtr);
+                var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
                 Reset();
@@ -241,7 +257,7 @@ namespace Neuronic.Filters
             fixed (float* inputPtr = input, outputPtr = output)
             fixed (double* tranPtr = _transients)
             {
-                var nfact = ReadTransients(count, tranPtr, inputPtr);
+                var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
                 Reset();
@@ -295,7 +311,7 @@ namespace Neuronic.Filters
             fixed (double* inputPtr = input, outputPtr = output)
             fixed (double* tranPtr = _transients)
             {
-                var nfact = ReadTransients(count, tranPtr, inputPtr);
+                var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
                 Reset();
@@ -349,6 +365,9 @@ namespace Neuronic.Filters
         /// <returns>The number of elements in the collection. </returns>
         public int Count => Stages.Length;
 
+        /// <summary>
+        /// Gets the filter's second order stages.
+        /// </summary>
         protected Biquad[] Stages => _coeffs;
 
         /// <summary>Gets the element at the specified index in the read-only list.</summary>
@@ -356,24 +375,36 @@ namespace Neuronic.Filters
         /// <param name="index">The zero-based index of the element to get. </param>
         public Biquad this[int index] => Stages[index];
 
+        /// <summary>
+        /// Gets the impulse response of the filter at the specified frequency.
+        /// </summary>
+        /// <param name="normalizedFrequency">The normalized frequency.</param>
+        /// <returns>The impulse response.</returns>
         public Complex GetResponse(double normalizedFrequency)
         {
             return Stages.GetResponse(normalizedFrequency);
         }
     }
 
+    /// <summary>
+    /// A biquad filter in Direct Form I.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.BiquadChain" />
     public class DirectFormIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
-        private double _ac;
 
-        public DirectFormIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DirectFormIBiquadChain"/> class.
+        /// </summary>
+        /// <param name="coefficients">The list of biquad sections.</param>
+        /// <param name="gain">The overall gain of the filter.</param>
+        public DirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
         {
             _states = new State[Count];
-            _ac = ac;
-            Stages.Scale(gain);
         }
 
+        /// <inheritdoc />
         public override void Reset()
         {
             Array.Clear(_states, 0, Count);
@@ -382,13 +413,13 @@ namespace Neuronic.Filters
         private unsafe double FilterSample(double input, State* state, Biquad* stage)
         {
             var result = input;
-            var ac = (_ac *= -1);
-            result = state[0].Process(result, stage[0], ac);
+            result = state[0].Process(result, stage[0]);
             for (int i = 1; i < Count; i++)
                 result = state[i].Process(result, stage[i]);
             return result;
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -404,6 +435,7 @@ namespace Neuronic.Filters
             }
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -438,18 +470,25 @@ namespace Neuronic.Filters
         }
     }
 
+    /// <summary>
+    /// A biquad filter in Direct Form II.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.BiquadChain" />
     public class DirectFormIIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
-        private double _ac;
 
-        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 1e-8) : base(coefficients, 1.0)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DirectFormIIBiquadChain"/> class.
+        /// </summary>
+        /// <param name="coefficients">The list of biquad sections.</param>
+        /// <param name="gain">The overall gain of the filter.</param>
+        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
         {
             _states = new State[Count];
-            _ac = ac;
-            Stages.Scale(gain);
         }
 
+        /// <inheritdoc />
         public override void Reset()
         {
             Array.Clear(_states, 0, Count);
@@ -458,13 +497,13 @@ namespace Neuronic.Filters
         private unsafe double FilterSample(double input, State* state, Biquad* stage)
         {
             var result = input * Gain;
-            var ac = (_ac *= -1);
-            result = state[0].Process(result, stage[0], ac);
+            result = state[0].Process(result, stage[0]);
             for (int i = 1; i < Count; i++)
                 result = state[i].Process(result, stage[i]);
             return result;
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -480,6 +519,7 @@ namespace Neuronic.Filters
             }
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -512,16 +552,25 @@ namespace Neuronic.Filters
         }
     }
 
+    /// <summary>
+    /// A biquad filter in Transposed Direct Form I.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.BiquadChain" />
     public class TransposedDirectFormIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
 
-        public TransposedDirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, 1.0)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransposedDirectFormIBiquadChain"/> class.
+        /// </summary>
+        /// <param name="coefficients">The list of biquad sections.</param>
+        /// <param name="gain">The overall gain of the filter.</param>
+        public TransposedDirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
         {
             _states = new State[Count];
-            Stages.Scale(gain);
         }
 
+        /// <inheritdoc />
         public override void Reset()
         {
             Array.Clear(_states, 0, Count);
@@ -536,6 +585,7 @@ namespace Neuronic.Filters
             return result;
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -551,6 +601,7 @@ namespace Neuronic.Filters
             }
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -590,18 +641,25 @@ namespace Neuronic.Filters
         }
     }
 
+    /// <summary>
+    /// A biquad filter in Transposed Direct Form II.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.BiquadChain" />
     public class TransposedDirectFormIIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
-        private double _ac;
 
-        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, double ac = 0.0) : base(coefficients, 1.0)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransposedDirectFormIIBiquadChain"/> class.
+        /// </summary>
+        /// <param name="coefficients">The list of biquad sections.</param>
+        /// <param name="gain">The overall gain of the filter.</param>
+        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
         {
             _states = new State[Count];
-            _ac = ac;
-            Stages.Scale(gain);
         }
 
+        /// <inheritdoc />
         public override void Reset()
         {
             Array.Clear(_states, 0, Count);
@@ -610,13 +668,13 @@ namespace Neuronic.Filters
         private unsafe double FilterSample(double input, State* state, Biquad* stage)
         {
             var result = input * Gain;
-            var ac = (_ac *= -1);
-            result = state[0].Process(result, stage[0], ac);
+            result = state[0].Process(result, stage[0]);
             for (int i = 1; i < Count; i++)
                 result = state[i].Process(result, stage[i]);
             return result;
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(float* input, float* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)
@@ -632,6 +690,7 @@ namespace Neuronic.Filters
             }
         }
 
+        /// <inheritdoc />
         public override unsafe void FilterOnce(double* input, double* output, int count, int stride)
         {
             fixed (Biquad* stage = Stages)

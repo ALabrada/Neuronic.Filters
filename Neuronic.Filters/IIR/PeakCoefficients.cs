@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace Neuronic.Filters.IIR
 {
+    /// <summary>
+    /// A second-order peak filter designer.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.IBiquadCoefficients" />
     public class PeakCoefficients : IBiquadCoefficients
     {
         /// <summary>
@@ -66,7 +70,8 @@ namespace Neuronic.Filters.IIR
         {
             var coeffs = new List<Biquad>(1);
             var gain = Calculate(coeffs);
-            return new TransposedDirectFormIIBiquadChain(coeffs, gain);
+            coeffs.Scale(gain);
+            return new TransposedDirectFormIIBiquadChain(coeffs, 1);
         }
     }
 }

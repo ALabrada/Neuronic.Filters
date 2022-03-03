@@ -6,7 +6,7 @@ using System.Numerics;
 namespace Neuronic.Filters.IIR
 {
     /// <summary>
-    /// A band-stop butterworth filter.
+    /// A band-stop Butterworth filter designer.
     /// </summary>
     public class BandStopButterworthCoefficients : ButterworthCoefficients
     {

@@ -7,7 +7,7 @@ using System.Numerics;
 namespace Neuronic.Filters.IIR
 {
     /// <summary>
-    /// Base class for the butterwoth filters.
+    /// Base class for the Butterworth filter designers.
     /// </summary>
     public abstract class ButterworthCoefficients : IBiquadCoefficients
     {
@@ -105,7 +105,8 @@ namespace Neuronic.Filters.IIR
         {
             var coeffs = new List<Biquad>((FilterOrder + 1) / 2);
             var gain = Calculate(coeffs);
-            return new TransposedDirectFormIIBiquadChain(coeffs, gain);
+            coeffs.Scale(gain);
+            return new TransposedDirectFormIIBiquadChain(coeffs, 1);
         }
 
         /// <summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Neuronic.Filters
 {
     /// <summary>
-    /// Abstraction of a class that calculates filtering coefficients for a <see cref="BiquadChain"/>.
+    /// Abstraction of an IIR filter designer using second-order sections.
     /// </summary>
     public interface IBiquadCoefficients
     {

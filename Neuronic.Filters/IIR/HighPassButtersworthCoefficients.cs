@@ -6,7 +6,7 @@ using System.Numerics;
 namespace Neuronic.Filters.IIR
 {
     /// <summary>
-    /// A high-pass butterworth filter.
+    /// A high-pass Butterworth filter designer.
     /// </summary>
     public class HighPassButterworthCoefficients : ButterworthCoefficients
     {

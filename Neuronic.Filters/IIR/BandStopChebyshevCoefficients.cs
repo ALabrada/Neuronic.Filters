@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace Neuronic.Filters.IIR
 {
+    /// <summary>
+    /// A band-stop Chebyshev filter designer.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.IIR.ChebyshevICoefficients" />
     public class BandStopChebyshevICoefficients : ChebyshevICoefficients
     {
         /// <summary>
@@ -12,6 +16,7 @@ namespace Neuronic.Filters.IIR
         /// <param name="fs">The sampling frequency.</param>
         /// <param name="f1">The minor cut-off frequency.</param>
         /// <param name="f2">The major cut-off frequency.</param>
+        /// <param name="rippleDb">The maximum passband ripple.</param>
         public BandStopChebyshevICoefficients(int filterOrder, double fs, double f1, double f2, double rippleDb) : base(filterOrder, fs, rippleDb)
         {
             if (f1 > f2)
@@ -33,6 +38,7 @@ namespace Neuronic.Filters.IIR
         /// </summary>
         public double SecondCutoffFrequency { get; }
 
+        /// <inheritdoc/>
         public override double Calculate(IList<Biquad> coeffs)
         {
             AnalogDesign();
@@ -47,6 +53,10 @@ namespace Neuronic.Filters.IIR
         }
     }
 
+    /// <summary>
+    /// A band-stop Inverse Chebyshev filter designer.
+    /// </summary>
+    /// <seealso cref="Neuronic.Filters.IIR.ChebyshevIICoefficients" />
     public class BandStopChebyshevIICoefficients : ChebyshevIICoefficients
     {
         /// <summary>
@@ -56,6 +66,7 @@ namespace Neuronic.Filters.IIR
         /// <param name="fs">The sampling frequency.</param>
         /// <param name="f1">The minor cut-off frequency.</param>
         /// <param name="f2">The major cut-off frequency.</param>
+        /// <param name="stopBandDb">The maximum stop-band ripple.</param>
         public BandStopChebyshevIICoefficients(int filterOrder, double fs, double f1, double f2, double stopBandDb) : base(filterOrder, fs, stopBandDb)
         {
             if (f1 > f2)
@@ -77,6 +88,7 @@ namespace Neuronic.Filters.IIR
         /// </summary>
         public double SecondCutoffFrequency { get; }
 
+        /// <inheritdoc/>
         public override double Calculate(IList<Biquad> coeffs)
         {
             AnalogDesign();

@@ -53,6 +53,9 @@ namespace Neuronic.Filters
         /// </summary>
         public double A2 => _a2;
 
+        /// <summary>
+        /// The identity filter.
+        /// </summary>
         public static readonly Biquad Identity = new Biquad(1, 0, 0, 1, 0, 0);
 
         internal static Biquad FromPoleZeroPair(IIR.PoleZeroPair pair)
@@ -65,12 +68,12 @@ namespace Neuronic.Filters
                     pair.Poles.Second, pair.Zeros.Second);
         }
 
-        public static Biquad FromPole(Complex pole, Complex zero)
+        internal static Biquad FromPole(Complex pole, Complex zero)
         {
             return new Biquad(-zero.Real, 1, 0, 1, -pole.Real, 0);
         }
 
-        public static Biquad FromPoles(
+        internal static Biquad FromPoles(
             Complex pole1, Complex zero1,
             Complex pole2, Complex zero2)
         {
@@ -107,6 +110,14 @@ namespace Neuronic.Filters
             return new Biquad(b0, b1, b2, a0, a1, a2);
         }
 
+        /// <summary>
+        /// Scales the biquad filter
+        /// </summary>
+        /// <param name="b">The filter.</param>
+        /// <param name="scale">The scale.</param>
+        /// <returns>
+        /// The scaled biquad.
+        /// </returns>
         public static Biquad operator *(Biquad b, double scale)
         {
             b._b0 *= scale;
