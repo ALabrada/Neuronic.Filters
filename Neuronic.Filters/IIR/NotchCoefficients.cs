@@ -60,7 +60,7 @@ namespace Neuronic.Filters.IIR
 
             coeffs.Add(new Biquad(1, -2.0 * Math.Cos(w0), 1, 1, -2.0 * gain * Math.Cos(w0), 2.0 * gain - 1.0));
 
-            return 1d;
+            return gain;
         }
 
         /// <summary>
