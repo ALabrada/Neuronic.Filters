@@ -33,6 +33,10 @@ namespace Neuronic.Filters.Testing
                 new Biquad(1.000000, 2.000000, 1.000000, 1.000000, -1.967605, 0.972608),
             };
 
+            Assert.AreEqual(1, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.AreEqual(f, cutoffFrequency, 2.0);
+
             Assert.AreEqual(expected.Length, chain.Count);
             for (int i = 0; i < expected.Length; i++)
                 Helpers.ValidateBiquad(expected[i], chain[i], error);
@@ -50,6 +54,10 @@ namespace Neuronic.Filters.Testing
             var chain = coeff.Calculate();
 
             var expected = Helpers.LoadCsv(Resources.LowPass12).ToList();
+
+            Assert.AreEqual(1, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.AreEqual(f, cutoffFrequency, 1.0);
 
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
@@ -70,49 +78,13 @@ namespace Neuronic.Filters.Testing
             var expected = Helpers.LoadCsv(Resources.LowPass16).ToList();
             var expectedGain = 3.444463173412853e-25;
 
+            Assert.AreEqual(1, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.AreEqual(f, cutoffFrequency, 1.0);
+
             Assert.AreEqual(expected.Count, chain.Count);
             for (int i = 0; i < expected.Count; i++)
                 Helpers.ValidateBiquad(expected[i], chain[i], error);
-        }
-
-        [TestMethod]
-        public void TestLowPassSinusoid()
-        {
-            const int order = 16;
-            const int fs = 44100;
-            const double cutoffFrequency = 400d;
-            const int cycles = 10;
-            double[] frequencies =
-                {65.406, 130.81, 261.63, 523.25, 1046.5, 2093.0, 4186.0, 8372.0};
-
-            var signal = new double[cycles * fs];
-            foreach (var frequency in frequencies)
-                Helpers.GenerateSinusoid(frequency, fs, signal);
-            var im = new double[signal.Length];
-
-            var coeff = new List<Biquad>();
-            var gain = new LowPassButterworthCoefficients(order, fs, cutoffFrequency).Calculate(coeff);
-            var chain = new TransposedDirectFormIIBiquadChain(coeff, gain);
-            chain.Filter(signal, 0, signal, 0, signal.Length);
-
-            var count = signal.Length / 2;
-            FourierTransform2.FFT(signal, im, FourierTransform.Direction.Forward);
-            Helpers.CalculateEnergy(signal, im, count);
-
-            var maxEnergy = signal.Take(count).Max();
-            var step = fs / (2d * count);
-            var peakSet = new HashSet<double>();
-            for (int i = 2; i < count - 1; i++)
-            {
-                var freq = i * step;
-                if (signal[i] > signal[i - 1] && signal[i] > signal[i + 1] && signal[i] >= 0.001 * maxEnergy)
-                {
-                    var peak = frequencies.FirstOrDefault(x => Math.Abs(freq - x) <= 1);
-                    Assert.AreNotEqual(0, peak);
-                    peakSet.Add(peak);
-                }
-            }
-            Assert.IsTrue(peakSet.SetEquals(frequencies.Where(x => x < cutoffFrequency)));
         }
 
         [TestMethod]
@@ -130,6 +102,10 @@ namespace Neuronic.Filters.Testing
             {
                 new Biquad(0.016819150107057118, 0.033638300214114236, 0.016819150107057118, 1, -1.6010923941836190, 0.66836899461184751),
             };
+
+            Assert.AreEqual(1, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.AreEqual(f, cutoffFrequency, 5.0);
 
             Assert.AreEqual(expected.Length, chain.Count);
             for (int i = 0; i < expected.Length; i++)

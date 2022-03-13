@@ -46,6 +46,44 @@ namespace Neuronic.Filters.Testing
             Assert.IsTrue(Math.Abs(originalCorrelation) < Math.Abs(filteredCorrelation));
         }
 
+        private static void TestFilterWithDC(int order, int fs, int cycles, IBiquadCoefficients coeff,
+            IEnumerable<double> frequencies, IEnumerable<double> validFrequencies, double dc)
+        {
+            var samples = new double[cycles * fs];
+            foreach (var frequency in frequencies)
+                Helpers.GenerateSinusoid(frequency, fs, samples);
+            for (int i = 0; i < samples.Length; i++)
+                samples[i] += dc;
+            var originalSignal = new Signal(samples);
+
+            var coeffs = new List<Biquad>();
+            var gain = coeff.Calculate(coeffs);
+            coeffs[0] *= gain;
+            var chain = new TransposedDirectFormIIBiquadChain(coeffs, 1);
+            chain.Filter(samples, 0, samples, 0, samples.Length);
+            var filteredSignal = new Signal(samples, fs, samples.Length - 2 * fs);
+
+            Array.Clear(samples, 0, samples.Length);
+            foreach (var frequency in validFrequencies)
+                Helpers.GenerateSinusoid(frequency, fs, samples);
+            var expectedSignal = new Signal(samples, fs, samples.Length - 2 * fs);
+
+            var filteredCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, 0);
+            var originalCorrelation = Signal.CrossCorrelation(originalSignal, filteredSignal, 0);
+
+            //for (int i = 3; i <= order; i++)
+            //{
+            //    var crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, i);
+            //    Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
+            //    crossCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, -i);
+            //    Assert.IsTrue(Math.Abs(crossCorrelation) < Math.Abs(filteredCorrelation));
+            //}
+
+            Assert.AreEqual(1, filteredCorrelation, 0.1);
+            Assert.AreNotEqual(1, originalCorrelation, 0.1);
+            Assert.IsTrue(Math.Abs(originalCorrelation) < Math.Abs(filteredCorrelation));
+        }
+
         [TestMethod]
         public void TestLowPassButtersworthFiltering()
         {
@@ -196,6 +234,69 @@ namespace Neuronic.Filters.Testing
             var coeff = new PeakCoefficients(fs, cutoffFrequency, 30);
 
             TestFilter(2, fs, cycles, coeff, frequencies, validFrequencies);
+        }
+
+
+        [TestMethod]
+        public void TestLowPassButtersworthFilteringWithDC()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double cutoffFrequency = 2000d;
+            const int cycles = 10;
+            double[] frequencies = { 770, 5830 };
+            var validFrequencies = frequencies.TakeWhile(f => f < cutoffFrequency);
+
+            var coeff = new LowPassButterworthCoefficients(order, fs, cutoffFrequency);
+
+            TestFilterWithDC(order, fs, cycles, coeff, frequencies, validFrequencies, 1.0);
+        }
+
+        [TestMethod]
+        public void TestHighPassButtersworthFilteringWithDC()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double cutoffFrequency = 1000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 1870 };
+            var validFrequencies = frequencies.SkipWhile(f => f < cutoffFrequency);
+
+            var coeff = new HighPassButterworthCoefficients(order, fs, cutoffFrequency);
+
+            TestFilterWithDC(order, fs, cycles, coeff, frequencies, validFrequencies, 10.0);
+        }
+
+        [TestMethod]
+        public void TestBandPassButtersworthFilteringWithDC()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double f1 = 1000d;
+            const double f2 = 4000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 1870, 9790 };
+            var validFrequencies = frequencies.SkipWhile(f => f < f1).TakeWhile(f => f < f2);
+
+            var coeff = new BandPassButterworthCoefficients(order, fs, f1, f2);
+
+            TestFilterWithDC(order, fs, cycles, coeff, frequencies, validFrequencies, -1.0);
+        }
+
+        [TestMethod]
+        public void TestBandStopButtersworthFilteringWithDC()
+        {
+            const int order = 16;
+            const int fs = 44100;
+            const double f1 = 500d;
+            const double f2 = 8000d;
+            const int cycles = 10;
+            double[] frequencies = { 330, 770, 1870, 5830, 9790 };
+            var validFrequencies = frequencies.TakeWhile(f => f < f1).Concat(frequencies.SkipWhile(f => f < f2));
+
+            var coeff = new BandStopButterworthCoefficients(order, fs, f1, f2);
+
+            TestFilterWithDC(order, fs, cycles, coeff, frequencies, validFrequencies, -10.0);
         }
     }
 }

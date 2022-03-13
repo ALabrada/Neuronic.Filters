@@ -25,9 +25,13 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        protected BiquadChain(IList<Biquad> coefficients, double gain)
+        /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
+        protected BiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null)
         {
-            _transients = new double[coefficients.Count * 6];
+            if (padLen.HasValue && padLen.Value < 0)
+                throw new ArgumentOutOfRangeException(nameof(padLen));
+            PaddingLength = padLen ?? coefficients.Count * 6;
+            _transients = new double[PaddingLength * 2];
             _coeffs = new Biquad[coefficients.Count];
             coefficients.CopyTo(_coeffs, 0);
             Gain = gain;
@@ -39,9 +43,34 @@ namespace Neuronic.Filters
         public double Gain { get; }
 
         /// <summary>
-        /// Reset's the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
+        /// Gets the padding length for zero phase filtering.
+        /// </summary>
+        public int PaddingLength { get; }
+
+        /// <summary>
+        /// Resets the filter's state. Use this if the next buffer that will be processed is not continuous after the last one.
         /// </summary>
         public abstract void Reset();
+
+        /// <summary>
+        /// Resets the filter's state with a variable DC level.
+        /// </summary>
+        /// <param name="dc">The DC level.</param>
+        public virtual void Reset(double dc)
+        {
+            Reset();
+        }
+
+        private unsafe double EstimateDC(double* ptr, int count)
+        {
+            if (count == 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+
+            var sum = 0.0;
+            for (int i = count - 1; i >= 0; i--)
+                sum += ptr[i];
+            return sum / count;
+        }
 
         /// <summary>
         /// Reads the samples used as signal padding.
@@ -54,6 +83,7 @@ namespace Neuronic.Filters
         protected virtual unsafe int ReadTransients(float* inputPtr, int count, int stride, double* outputPtr)
         {
             var nfact = Math.Min(_transients.Length / 2, count);
+            if (nfact == 0) return 0;
             var current = outputPtr;
             var f = 2 * inputPtr[0];
             for (int i = nfact; i > 0; i--, current++)
@@ -75,6 +105,7 @@ namespace Neuronic.Filters
         protected virtual unsafe int ReadTransients(double* inputPtr, int count, int stride, double* outputPtr)
         {
             var nfact = Math.Min(_transients.Length / 2, count);
+            if (nfact == 0) return 0;
             var current = outputPtr;
             var f = 2 * inputPtr[0];
             for (int i = nfact; i > 0; i--, current++)
@@ -122,14 +153,14 @@ namespace Neuronic.Filters
                 var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
-                Reset();
+                Reset(nfact <= 0 ? inputPtr[0] : EstimateDC(tranPtr, nfact));
                 FilterOnce(tranPtr, tranPtr, nfact, 1);
                 // Filter forward
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
 
                 // Init state
-                Reset();
-                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                Reset(nfact <= 0 ? outputPtr[outputIndex + count - 1] : EstimateDC(tranPtr + nfact, nfact));
+                FilterOnce(tranPtr + nfact, tranPtr + nfact, nfact, 1);
                 // Filter back
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
             }
@@ -199,14 +230,14 @@ namespace Neuronic.Filters
                 var nfact = ReadTransients(inputPtr, count, stride, tranPtr);
 
                 // Init state
-                Reset();
+                Reset(nfact <= 0 ? inputPtr[0] : EstimateDC(tranPtr, nfact));
                 FilterOnce(tranPtr, tranPtr, nfact, 1);
                 // Filter forward
                 FilterOnce(inputPtr + inputIndex, outputPtr + outputIndex, count, stride);
 
                 // Init state
-                Reset();
-                FilterOnce(tranPtr, tranPtr, _transients.Length, 1);
+                Reset(nfact <= 0 ? outputPtr[outputIndex + count - 1] : EstimateDC(tranPtr + nfact, nfact));
+                FilterOnce(tranPtr + nfact, tranPtr + nfact, nfact, 1);
                 // Filter back
                 FilterOnce(outputPtr + outputIndex + count - 1, outputPtr + outputIndex + count - 1, count, -stride);
             }
@@ -399,7 +430,8 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        public DirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
+        /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
+        public DirectFormIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null) : base(coefficients, gain, padLen)
         {
             _states = new State[Count];
         }
@@ -483,7 +515,8 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
+        /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
+        public DirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null) : base(coefficients, gain, padLen)
         {
             _states = new State[Count];
         }
@@ -565,7 +598,8 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        public TransposedDirectFormIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
+        /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
+        public TransposedDirectFormIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null) : base(coefficients, gain, padLen)
         {
             _states = new State[Count];
         }
@@ -654,7 +688,8 @@ namespace Neuronic.Filters
         /// </summary>
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
-        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain) : base(coefficients, gain)
+        /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
+        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null) : base(coefficients, gain, padLen)
         {
             _states = new State[Count];
         }
@@ -663,6 +698,24 @@ namespace Neuronic.Filters
         public override void Reset()
         {
             Array.Clear(_states, 0, Count);
+        }
+
+        /// <inheritdoc />
+        public override void Reset(double dc)
+        {
+            if (dc.Equals(0d))
+            {
+                Reset();
+                return;
+            }
+
+            var scale = 1.0;
+            for (int i = 0; i < Stages.Length; i++)
+            {
+                var s = Stages[i];
+                _states[i] = State.FromDCLevel(s, dc) * scale;
+                scale *= (s.B0 + s.B1 + s.B2) / (s.A0 + s.A1 + s.A2);
+            }
         }
 
         private unsafe double FilterSample(double input, State* state, Biquad* stage)
@@ -710,6 +763,12 @@ namespace Neuronic.Filters
         {
             private double _s1, _s1_1, _s2, _s2_1;
 
+            private State(double z0, double z1)
+            {
+                _s1 = _s1_1 = z0;
+                _s2 = _s2_1 = z1;
+            }
+
             public double Process(double x, Biquad s, double epsilon = 0d)
             {
                 var output = _s1_1 + s.B0 * x + epsilon;
@@ -719,6 +778,30 @@ namespace Neuronic.Filters
                 _s2_1 = _s2;
 
                 return output;
+            }
+
+            public static State FromDCLevel(Biquad stage, double dc)
+            {
+                var idMinA0 = 1 + stage.A1;
+                var idMinA1 = stage.A2;
+
+                var b1 = stage.B1 - stage.A1 * stage.B0;
+                var b2 = stage.B2 - stage.A2 * stage.B0;
+
+                var aSum = 1.0;
+                var cSum = 0.0;
+                var z0 = (b1 + b2) / (idMinA0 + idMinA1);
+
+                aSum += stage.A1;
+                cSum += b1;
+                var z1 = aSum * z0 - cSum;
+
+                return new State(z0 * dc, z1 * dc);
+            }
+
+            public static State operator *(State state, double scale)
+            {
+                return new State(state._s1_1 * scale, state._s2_1 * scale);
             }
         }
     }

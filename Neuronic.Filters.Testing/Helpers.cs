@@ -51,5 +51,25 @@ namespace Neuronic.Filters.Testing
             for (int i = 0; i < count; i++)
                 re[i] = 2 * Math.Sqrt(re[i] * re[i] + im[i] * im[i]);
         }
+
+        internal static IEnumerable<double> GetTransitionBands(this BiquadChain chain, double fs, double db = -3.0)
+        {
+            var len = (int)Math.Floor(fs / 2.0);
+            var response = new double[len];
+            for (int i = 0; i < response.Length; i++)
+            {
+                var impulse = chain.GetResponse(i / fs);
+                response[i] = 20 * Math.Log10(impulse.Magnitude + 1e-16);
+            }
+
+            for (int i = 1; i < response.Length; i++)
+            {
+                var prev = response[i - 1] - db;
+                var current = response[i] - db;
+                if (prev < 0 && current >= 0 ||
+                    prev > 0 && current <= 0)
+                    yield return i;
+            }
+        }
     }
 }

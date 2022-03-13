@@ -24,6 +24,10 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandStopButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
+            Assert.AreEqual(2, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.IsTrue(Math.Abs(cutoffFrequency - br - f) <= 2.0 || Math.Abs(cutoffFrequency + br - f) <= 2.0);
+
             var expected = Helpers.LoadCsv(Resources.BandStop08).ToList();
             var expectedGain = 0.996359732766342;
 
@@ -44,6 +48,10 @@ namespace Neuronic.Filters.Testing
             var coeff = new BandStopButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
 
+            Assert.AreEqual(2, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.IsTrue(Math.Abs(cutoffFrequency - br - f) <= 2.0 || Math.Abs(cutoffFrequency + br - f) <= 1.0);
+
             var expected = Helpers.LoadCsv(Resources.BandStop12).ToList();
             var expectedGain = 0.985211119221826;
 
@@ -63,6 +71,10 @@ namespace Neuronic.Filters.Testing
 
             var coeff = new BandStopButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
+
+            Assert.AreEqual(2, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.IsTrue(Math.Abs(cutoffFrequency - br - f) <= 2.0 || Math.Abs(cutoffFrequency + br - f) <= 1.0);
 
             var expected = Helpers.LoadCsv(Resources.BandStop16).ToList();
             var expectedGain = 0.997950883359409;
@@ -123,6 +135,10 @@ namespace Neuronic.Filters.Testing
 
             var coeff = new BandStopButterworthCoefficients(order, fs, cutoffFrequency - br, cutoffFrequency + br);
             var chain = coeff.Calculate();
+
+            Assert.AreEqual(2, chain.GetTransitionBands(fs).Count());
+            foreach (var f in chain.GetTransitionBands(fs))
+                Assert.IsTrue(Math.Abs(cutoffFrequency - br - f) <= 2.0 || Math.Abs(cutoffFrequency + br - f) <= 5.0);
 
             var expected = new[]
             {

@@ -59,7 +59,7 @@ namespace Neuronic.Filters.Testing
             for (int i = 0; i < x.Count; i++)
                 if (i + m >= 0 && i + m < y.Count)
                 {
-                    sum += x[i] * y[i + m];
+                    sum += (x[i] - x.Mean) * (y[i + m] - y.Mean);
                     count++;
                 }
             var productMean = sum / count;
