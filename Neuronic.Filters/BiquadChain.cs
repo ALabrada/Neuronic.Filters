@@ -682,6 +682,7 @@ namespace Neuronic.Filters
     public class TransposedDirectFormIIBiquadChain : BiquadChain
     {
         private readonly State[] _states;
+        private bool _estimateDC;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TransposedDirectFormIIBiquadChain"/> class.
@@ -689,8 +690,10 @@ namespace Neuronic.Filters
         /// <param name="coefficients">The list of biquad sections.</param>
         /// <param name="gain">The overall gain of the filter.</param>
         /// <param name="padLen">The padding length. The default value is six times the amount of biquad sections.</param>
-        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null) : base(coefficients, gain, padLen)
+        /// <param name="estimateDC">Whether to estimate the DC level before filtering and to initialize the state accordingly.</param>
+        public TransposedDirectFormIIBiquadChain(IList<Biquad> coefficients, double gain, int? padLen = null, bool estimateDC = false) : base(coefficients, gain, padLen)
         {
+            _estimateDC = estimateDC;
             _states = new State[Count];
         }
 
@@ -703,7 +706,7 @@ namespace Neuronic.Filters
         /// <inheritdoc />
         public override void Reset(double dc)
         {
-            if (dc.Equals(0d))
+            if (!_estimateDC || dc.Equals(0d))
             {
                 Reset();
                 return;

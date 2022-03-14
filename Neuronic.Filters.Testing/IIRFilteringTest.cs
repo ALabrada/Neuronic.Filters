@@ -59,14 +59,14 @@ namespace Neuronic.Filters.Testing
             var coeffs = new List<Biquad>();
             var gain = coeff.Calculate(coeffs);
             coeffs[0] *= gain;
-            var chain = new TransposedDirectFormIIBiquadChain(coeffs, 1);
+            var chain = new TransposedDirectFormIIBiquadChain(coeffs, 1, estimateDC: true);
             chain.Filter(samples, 0, samples, 0, samples.Length);
-            var filteredSignal = new Signal(samples, fs, samples.Length - 2 * fs);
+            var filteredSignal = new Signal(samples, 0, samples.Length);
 
             Array.Clear(samples, 0, samples.Length);
             foreach (var frequency in validFrequencies)
                 Helpers.GenerateSinusoid(frequency, fs, samples);
-            var expectedSignal = new Signal(samples, fs, samples.Length - 2 * fs);
+            var expectedSignal = new Signal(samples, 0, samples.Length);
 
             var filteredCorrelation = Signal.CrossCorrelation(expectedSignal, filteredSignal, 0);
             var originalCorrelation = Signal.CrossCorrelation(originalSignal, filteredSignal, 0);
