@@ -24,7 +24,7 @@ namespace Neuronic.Filters.Testing
             const double f1 = 50d;
             const double f2 = 200d;
             const double error = 1e-6;
-            
+
             var expected = new[]
             {
                 0.014555018853135, 0.030587599085740, 0.072590662364310, 0.124572862190256, 0.166663940153847, 0.182748392063313,
@@ -42,7 +42,7 @@ namespace Neuronic.Filters.Testing
             const double f1 = 50d;
             const double f2 = 200d;
             const double error = 1e-6;
-            
+
             var expected = new[]
             {
                 0.009713480273588, 0.014578561315120, 0.028324409676720, 0.048617631390348, 0.071966240485030, 0.094328752308441,

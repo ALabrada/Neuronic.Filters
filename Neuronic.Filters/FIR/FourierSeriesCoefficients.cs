@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Neuronic.Filters.FIR
 {
@@ -19,6 +20,14 @@ namespace Neuronic.Filters.FIR
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether to apply scaling to the coefficients.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if scaling should be applied; otherwise, <c>false</c>.
+        /// </value>
+        public bool UseScaling { get; set; } = true;
+
+        /// <summary>
         /// Calculates coefficients (taps) for a FIR filter.
         /// </summary>
         /// <param name="coeffs">The collection that will hold the coefficients.</param>
@@ -29,7 +38,24 @@ namespace Neuronic.Filters.FIR
                 coeffs.Add(CalculateTap(n));
 
             ApplyWindow(coeffs);
+
+            if (UseScaling)
+                Scale(coeffs);
         }
+
+        private void Scale(IList<double> coeffs)
+        {
+            var scale = coeffs.Select((c, i) => c * CalculateScale(i)).Sum();
+            for (int i = 0; i < coeffs.Count; i++)
+                coeffs[i] /= scale;
+        }
+
+        /// <summary>
+        /// Calculates the scaling factor at hte specified index.
+        /// </summary>
+        /// <param name="n">The index.</param>
+        /// <returns></returns>
+        protected abstract double CalculateScale(int n);
 
         /// <summary>
         /// Calculates the tap at the specified index.
@@ -79,6 +105,11 @@ namespace Neuronic.Filters.FIR
                 ? _lambda / Math.PI
                 : Math.Sin(mm * _lambda) / (mm * Math.PI);
         }
+
+        protected override double CalculateScale(int n)
+        {
+            return 1;
+        }
     }
 
     /// <summary>
@@ -121,6 +152,12 @@ namespace Neuronic.Filters.FIR
             return mm == 0
                 ? 1d - _lambda / Math.PI
                 : -Math.Sin(mm * _lambda) / (mm * Math.PI);
+        }
+
+        protected override double CalculateScale(int n)
+        {
+            var mm = n - FilterOrder / 2d;
+            return Math.Cos(Math.PI * mm);
         }
     }
 
@@ -185,6 +222,17 @@ namespace Neuronic.Filters.FIR
                 ? (_phi - _lambda) / Math.PI
                 : (Math.Sin(mm * _phi) - Math.Sin(mm * _lambda)) / (mm * Math.PI);
         }
+
+        /// <summary>
+        /// Calculates the scaling factor at hte specified index.
+        /// </summary>
+        /// <param name="n">The index.</param>
+        /// <returns></returns>
+        protected override double CalculateScale(int n)
+        {
+            var mm = n - FilterOrder / 2d;
+            return Math.Cos(mm * (_phi + _lambda) / 2.0);
+        }
     }
 
     /// <summary>
@@ -247,6 +295,11 @@ namespace Neuronic.Filters.FIR
             return mm == 0
                 ? 1d - (_phi - _lambda) / Math.PI
                 : (Math.Sin(mm * _lambda) - Math.Sin(mm * _phi)) / (mm * Math.PI);
+        }
+
+        protected override double CalculateScale(int n)
+        {
+            return 1;
         }
     }
 }

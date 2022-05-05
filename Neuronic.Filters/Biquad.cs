@@ -1,4 +1,8 @@
 ﻿using Neuronic.Filters.IIR;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 
 namespace Neuronic.Filters
@@ -109,6 +113,52 @@ namespace Neuronic.Filters
 
             return new Biquad(b0, b1, b2, a0, a1, a2);
         }
+
+        //public static double FromTaps(IEnumerable<double> taps, IList<Biquad> sos)
+        //{
+        //    var b = taps.ToList();
+        //    var zeros = new List<Complex>();
+        //    var k = b.ToZPK(zeros);
+        //    var sections = (zeros.Count + 1) / 2;
+
+        //    zeros.Sort((x, y) => -Math.Abs(1 - x.MagnitudeSquared()).CompareTo(Math.Abs(1 - y.MagnitudeSquared())));
+        //    while (zeros.Count > 0)
+        //    {
+        //        var z1 = zeros[zeros.Count - 1];
+        //        zeros.RemoveAt(zeros.Count - 1);
+        //        PoleZeroPair pair;
+        //        if (!z1.Imaginary.Equals(0d))
+        //            pair = new PoleZeroPair(Complex.Zero, z1);
+        //        else
+        //        {
+        //            var index = -1;
+        //            for (int i = zeros.Count - 1; i >= 0; i--)
+        //                if (zeros[i].Imaginary.Equals(0d))
+        //                {
+        //                    index = i;
+        //                    break;
+        //                }
+        //            Debug.Assert(index >= 0);
+        //            var z2 = zeros[index];
+        //            zeros.RemoveAt(index);
+
+        //            pair = new PoleZeroPair(Complex.Zero, z1, Complex.Zero, z2);
+        //        }
+
+        //        var section = Biquad.FromPoleZeroPair(pair);
+        //        sos.Add(section);
+        //    }
+
+        //    var offset = sos.Count - sections;
+        //    for (int i = sections - 1; i >= 0; i--)
+        //    {
+        //        var tmp = sos[offset + i];
+        //        sos[offset + i] = sos[sos.Count - 1 - i];
+        //        sos[sos.Count - 1 - i] = tmp;
+        //    }
+
+        //    return k;
+        //}
 
         /// <summary>
         /// Scales the biquad filter
